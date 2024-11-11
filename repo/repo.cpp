@@ -95,13 +95,13 @@ void repo::log(logging_type type)
 	case repoLog: {
 		std::vector<map_t> map = repo::util::get_map_list();
 		for (const auto& obj : map) {
-			printf("%s\n\n", obj.hash.c_str());
-			printf("%s%s\n\n", std::string(5, ' ').c_str(), obj.msg.c_str());
-			printf("%s%s | %s <%s>\n\n",
-				std::string(obj.msg.length() + 5, ' ').c_str(),
-				utils::timestamp::fmt(obj.timestamp).c_str(),
-				obj.cfg.username.c_str(),
-				obj.cfg.email.c_str());
+			std::cout << obj.hash << std::endl;
+			std::cout << std::endl;
+			std::cout << std::string(5, ' ') << obj.msg << std::endl;
+			std::cout << std::endl;
+			std::cout << std::string(obj.msg.length() + 5, ' ') << utils::timestamp::fmt(obj.timestamp) << " | ";
+			std::cout << obj.cfg.username << "<" << obj.cfg.email << ">" << std::endl;
+			std::cout << std::endl;
 		}
 		break;
 	}
