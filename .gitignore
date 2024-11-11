@@ -1,0 +1,9 @@
+.vs/
+
+bin/
+obj/
+
+cmap.sln
+cmap.vcxproj
+cmap.vcxproj.user
+cmap.vcxproj.filters
