@@ -141,10 +141,8 @@ bool repo::util::add_to_map(map_t map)
 	object.value[map.hash]["committer"]["email"] = map.cfg.email;
 	object.value[map.hash]["timestamp"] = map.timestamp;
 
-	if (!fs::make_file(ENV_COMMITMAP_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.value))) {
-		std::cout << "Failed to write data to map database" << std::endl;
+	if (!fs::make_file(ENV_COMMITMAP_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.value)))
 		return false;
-	}
 
 	return true;
 }
@@ -166,10 +164,7 @@ void repo::util::add_object_to_files(const file_type type, const std::string& ob
 	}
 
 	object.value[member_name].append(obj);
-
-	if (!fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.value))) {
-		std::cout << "Failed to write data to files database" << std::endl;
-	}
+	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.value));
 }
 
 void repo::util::remove_object_from_files(const file_type type, const std::string& obj)
@@ -190,9 +185,7 @@ void repo::util::remove_object_from_files(const file_type type, const std::strin
 		}
 	}
 
-	if (!fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.value))) {
-		std::cout << "Failed to write data to files database" << std::endl;
-	}
+	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.value));
 }
 
 void repo::util::clear_temp_files()
@@ -200,10 +193,7 @@ void repo::util::clear_temp_files()
 	json_object object = parse_json(fs::get_file_content(ENV_FILES_FILENAME));
 
 	object.value["Temp"] = Json::arrayValue;
-
-	if (!fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.value))) {
-		std::cout << "Failed to write data to files database" << std::endl;
-	}
+	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.value));
 }
 
 std::vector<map_t> repo::util::get_map_list()

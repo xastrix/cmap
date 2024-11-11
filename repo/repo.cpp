@@ -16,6 +16,17 @@ static void looking_for_similars(const std::string& path)
 	}
 }
 
+static bool ignore_spec_objects(const std::string& object)
+{
+	if (std::string{ object }.find(ENV_BASE_DIRECTORY "\\") != std::string::npos)
+		return false;
+
+	if (std::string{ object }.find(ENV_BASE_DIRECTORY "/") != std::string::npos)
+		return false;
+
+	return true;
+}
+
 repo_t repo::initialize()
 {
 	repo_t ret;
@@ -37,17 +48,18 @@ repo_t repo::initialize()
 
 void repo::add_object(const std::string& path)
 {
+	if (!ignore_spec_objects(path))
+		goto fail;
+
 	if (fs::exists(path).as(existNone)) {
-		std::cout << "Object not found" << std::endl;
+fail:
+		std::cout << "The file or directory at '" << path << "' was not found" << std::endl;
 		looking_for_similars(path);
-		return;
 	}
 
-	if (path == ENV_BASE_DIRECTORY)
-		return;
-
-	if (fs::exists(path).as(existObject))
+	else if (fs::exists(path).as(existObject)) {
 		util::add_object_to_files(tempFiles, path);
+	}
 
 	else if (fs::exists(path).as(existDirectory)) {
 		char* files[MAX_FILES];
@@ -55,10 +67,9 @@ void repo::add_object(const std::string& path)
 
 		fs::get_directory_files(path, files, &file_num, fmRecursive);
 
-		for (int i = 0; i < file_num; i++)
-		{
-			if (std::string{ files[i] }.find(ENV_BASE_DIRECTORY "\\") != std::string::npos)
-				continue;
+		for (int i = 0; i < file_num; i++) {
+			if (!ignore_spec_objects(files[i]))
+				goto fail;
 
 			repo::util::add_object_to_files(tempFiles, files[i]);
 		}
