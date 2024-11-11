@@ -69,7 +69,7 @@ fail:
 
 		for (int i = 0; i < file_num; i++) {
 			if (!ignore_spec_objects(files[i]))
-				goto fail;
+				continue;
 
 			repo::util::add_object_to_files(tempFiles, files[i]);
 		}
