@@ -1,6 +1,5 @@
 #include "repo_util.h"
 
-#include "../config.h"
 #include "../fs/fs.h"
 #include "../utils/utils.h"
 
@@ -85,7 +84,7 @@ std::vector<std::string> repo::util::get_untracked_files()
 
 	for (int i = 0; i < current_file_num; i++)
 	{
-		if (std::string{ current_files[i] }.find(ENV_BASE_DIRECTORY "\\") != std::string::npos)
+		if (!ignore_spec_objects(current_files[i]))
 			continue;
 
 		bool already_exists = false;
@@ -222,4 +221,15 @@ std::vector<map_t> repo::util::get_map_list()
 std::string repo::util::get_repo_directory()
 {
 	return utils::get_current_directory() + "\\" ENV_BASE_DIRECTORY;
+}
+
+bool repo::util::ignore_spec_objects(const std::string& object)
+{
+	if (std::string{ object }.find(ENV_BASE_DIRECTORY "\\") != std::string::npos)
+		return false;
+
+	if (std::string{ object }.find(ENV_BASE_DIRECTORY "/") != std::string::npos)
+		return false;
+
+	return true;
 }

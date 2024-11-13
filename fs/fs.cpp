@@ -82,23 +82,19 @@ void fs::get_directory_files(const std::string& dirname, char** files, int* num,
 		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && mode == fmFiles)
 			continue;
 
+		std::string path = dirname + "\\" + data.cFileName;
+
 		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
 			if (mode == fmRecursive) {
-				get_directory_files(dirname + "\\" + data.cFileName, files, num, fmRecursive);
+				get_directory_files(path, files, num, fmRecursive);
 			}
 			continue;
 		}
 
 		if (*num < MAX_FILES) {
-			std::string fullFilePath = dirname + "\\" + data.cFileName;
-			files[*num] = new char[fullFilePath.length() + 1];
-
-			if (fullFilePath.compare(0, 2, ".\\") == 0) {
-				fullFilePath.erase(0, 2);
-			}
-
+			files[*num] = new char[path.length() + 1];
 			if (files[*num] != NULL) {
-				strcpy_s(files[*num], fullFilePath.length() + 1, fullFilePath.c_str());
+				strcpy_s(files[*num], path.length() + 1, path.c_str());
 				(*num)++;
 			}
 		}

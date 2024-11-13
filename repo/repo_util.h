@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "../config.h"
 #include "../cfg/cfg.h"
 
 struct map_t {
@@ -34,4 +35,5 @@ namespace repo::util
 	void clear_temp_files();
 	std::vector<map_t> get_map_list();
 	std::string get_repo_directory();
+	bool ignore_spec_objects(const std::string& object);
 }

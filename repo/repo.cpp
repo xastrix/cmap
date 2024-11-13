@@ -1,6 +1,5 @@
 #include "repo.h"
 
-#include "../config.h"
 #include "../fs/fs.h"
 #include "../utils/utils.h"
 
@@ -14,17 +13,6 @@ static void looking_for_similars(const std::string& path)
 	for (int i = 0; i < similar_num; i++) {
 		std::cout << std::string(5, ' ') << "- " << similars[i] << "?" << std::endl;
 	}
-}
-
-static bool ignore_spec_objects(const std::string& object)
-{
-	if (std::string{ object }.find(ENV_BASE_DIRECTORY "\\") != std::string::npos)
-		return false;
-
-	if (std::string{ object }.find(ENV_BASE_DIRECTORY "/") != std::string::npos)
-		return false;
-
-	return true;
 }
 
 repo_t repo::initialize()
@@ -48,7 +36,7 @@ repo_t repo::initialize()
 
 void repo::add_object(const std::string& path)
 {
-	if (!ignore_spec_objects(path))
+	if (!util::ignore_spec_objects(path))
 		goto fail;
 
 	if (fs::exists(path).as(existNone)) {
@@ -68,7 +56,7 @@ fail:
 		fs::get_directory_files(path, files, &file_num, fmRecursive);
 
 		for (int i = 0; i < file_num; i++) {
-			if (!ignore_spec_objects(files[i]))
+			if (!util::ignore_spec_objects(files[i]))
 				continue;
 
 			repo::util::add_object_to_files(tempFiles, files[i]);
@@ -111,7 +99,7 @@ void repo::log(logging_type type)
 			std::cout << std::string(5, ' ') << obj.msg << std::endl;
 			std::cout << std::endl;
 			std::cout << std::string(obj.msg.length() + 5, ' ') << utils::timestamp::fmt(obj.timestamp) << " | ";
-			std::cout << obj.cfg.username << "<" << obj.cfg.email << ">" << std::endl;
+			std::cout << obj.cfg.username << " <" << obj.cfg.email << ">" << std::endl;
 			std::cout << std::endl;
 		}
 		break;
