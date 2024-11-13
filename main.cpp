@@ -12,7 +12,7 @@ int main(int argc, const char** argv)
 
 		"cmap add <filename>\n"
 		"  Add files to the tracked file list. (You can use . to track all files in the current directory)\n"
-		"  Also, you can remove file adding after <filename> \"--rm\" flag\n\n"
+		"  Also, you can delete a file that was added accidentally, type 'cmap add <filename> --rm'\n\n"
 
 		"cmap commit <msg>\n"
 		"  Create a new commit for your changes. This saves the current state of your tracked files.\n\n"
