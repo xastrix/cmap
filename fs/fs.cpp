@@ -71,7 +71,11 @@ void fs::get_directory_files(const std::string& dirname, char** files, int* num,
 	HANDLE h;
 
 	char path[MAX_PATH];
-	sprintf(path, "%s\\*.*", dirname.c_str());
+
+	if (dirname == ".")
+		sprintf(path, "*.*");
+	else
+		sprintf(path, "%s\\*.*", dirname.c_str());
 
 	h = FindFirstFileA(path, &data);
 
@@ -82,7 +86,12 @@ void fs::get_directory_files(const std::string& dirname, char** files, int* num,
 		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && mode == fmFiles)
 			continue;
 
-		std::string path = dirname + "\\" + data.cFileName;
+		char path[MAX_PATH];
+
+		if (dirname == ".")
+			sprintf(path, "%s", data.cFileName);
+		else
+			sprintf(path, "%s\\%s", dirname.c_str(), data.cFileName);
 
 		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
 			if (mode == fmRecursive) {
@@ -92,9 +101,9 @@ void fs::get_directory_files(const std::string& dirname, char** files, int* num,
 		}
 
 		if (*num < MAX_FILES) {
-			files[*num] = new char[path.length() + 1];
+			files[*num] = new char[strlen(path) + 1];
 			if (files[*num] != NULL) {
-				strcpy_s(files[*num], path.length() + 1, path.c_str());
+				strcpy_s(files[*num], strlen(path) + 1, path);
 				(*num)++;
 			}
 		}

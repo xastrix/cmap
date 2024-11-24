@@ -6,9 +6,7 @@
 #include <json/json.h>
 
 struct json_object {
-	json_object() : res(true) {}
 	Json::Value value;
-	bool res;
 };
 
 static json_object parse_json(const std::string& content)
@@ -19,10 +17,8 @@ static json_object parse_json(const std::string& content)
 	std::istringstream ss{ content };
 	Json::String log{};
 
-	if (!Json::parseFromStream(reader_builder, ss, &ret.value, &log)) {
-		ret.res = false;
+	if (!Json::parseFromStream(reader_builder, ss, &ret.value, &log))
 		return ret;
-	}
 
 	return ret;
 }
