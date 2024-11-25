@@ -28,6 +28,7 @@ struct fs_obj {
 namespace fs
 {
 	fs_obj exists(const std::string& path);
+	long get_file_size(const std::string& filename);
 	bool make_directory(const std::string& dirname, int attributes = 0);
 	bool make_file(const std::string& filename, const std::string& content = "", int flags = std::ios::out | std::ios::trunc);
 	bool remove_file(const std::string& filename);

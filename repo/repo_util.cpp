@@ -17,8 +17,7 @@ static json_object parse_json(const std::string& content)
 	std::istringstream ss{ content };
 	Json::String log{};
 
-	if (!Json::parseFromStream(reader_builder, ss, &ret.value, &log))
-		return ret;
+	Json::parseFromStream(reader_builder, ss, &ret.value, &log);
 
 	return ret;
 }
@@ -80,19 +79,17 @@ std::vector<std::string> repo::util::get_untracked_files()
 
 	for (int i = 0; i < current_file_num; i++)
 	{
-		if (!ignore_spec_objects(current_files[i]))
-			continue;
-
 		bool already_exists = false;
+
 		for (int k = 0; k < get_files(trackingFiles).size(); k++) {
-			if (strcmp(get_files(trackingFiles)[k].c_str(), current_files[i]) == 0) {
+			if (strcmp(utils::to_lower(get_files(trackingFiles)[k]).c_str(), utils::to_lower(current_files[i]).c_str()) == 0) {
 				already_exists = true;
 				break;
 			}
 		}
 
 		for (int j = 0; j < get_files(tempFiles).size(); j++) {
-			if (strcmp(get_files(tempFiles)[j].c_str(), current_files[i]) == 0) {
+			if (strcmp(utils::to_lower(get_files(tempFiles)[j]).c_str(), utils::to_lower(current_files[i]).c_str()) == 0) {
 				already_exists = true;
 				break;
 			}
@@ -103,6 +100,53 @@ std::vector<std::string> repo::util::get_untracked_files()
 	}
 
 	return _untracked_files;
+}
+
+std::vector<std::string> repo::util::get_modified_files()
+{
+	std::vector<std::string> _modified_files;
+
+	for (int i = 0; i < get_files(trackingFiles).size(); i++)
+	{
+		std::string tracked_path{ get_files(trackingFiles)[i] };
+
+		if (fs::exists(tracked_path).as(existObject))
+		{
+			std::string file_path{ ENV_STORAGE_DIRECTORY "\\" + get_map_list().back().hash + "\\" + tracked_path };
+
+			if (fs::exists(file_path).as(existObject))
+			{
+				if (fs::get_file_size(tracked_path) != fs::get_file_size(file_path))
+				{
+					_modified_files.push_back(get_files(trackingFiles)[i]);
+					break;
+				}
+			}
+		}
+	}
+
+	return _modified_files;
+}
+
+std::vector<std::string> repo::util::get_deleted_files()
+{
+	std::vector<std::string> _deleted_files;
+
+	for (int i = 0; i < get_files(trackingFiles).size(); i++)
+	{
+		std::string file_path{ ENV_STORAGE_DIRECTORY "\\" + get_map_list().back().hash + "\\" + get_files(trackingFiles)[i] };
+
+		if (fs::exists(file_path).as(existObject))
+		{
+			if (!fs::exists(get_files(trackingFiles)[i]).as(existObject))
+			{
+				_deleted_files.push_back(get_files(trackingFiles)[i]);
+				break;
+			}
+		}
+	}
+
+	return _deleted_files;
 }
 
 bool repo::util::copy_objects(const std::string& hash)
@@ -145,6 +189,7 @@ bool repo::util::add_to_map(map_t map)
 void repo::util::add_object_to_files(const file_type type, const std::string& obj)
 {
 	json_object object = parse_json(fs::get_file_content(ENV_FILES_FILENAME));
+
 	std::string member_name{};
 
 	if (type == tempFiles)
@@ -165,6 +210,7 @@ void repo::util::add_object_to_files(const file_type type, const std::string& ob
 void repo::util::remove_object_from_files(const file_type type, const std::string& obj)
 {
 	json_object object = parse_json(fs::get_file_content(ENV_FILES_FILENAME));
+
 	std::string member_name{};
 
 	if (type == tempFiles)
@@ -217,15 +263,4 @@ std::vector<map_t> repo::util::get_map_list()
 std::string repo::util::get_repo_directory()
 {
 	return utils::get_current_directory() + "\\" ENV_BASE_DIRECTORY;
-}
-
-bool repo::util::ignore_spec_objects(const std::string& object)
-{
-	if (std::string{ object }.find(ENV_BASE_DIRECTORY "\\") != std::string::npos)
-		return false;
-
-	if (std::string{ object }.find(ENV_BASE_DIRECTORY "/") != std::string::npos)
-		return false;
-
-	return true;
 }

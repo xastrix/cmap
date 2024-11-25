@@ -28,6 +28,8 @@ namespace repo::util
 	base_files_stat setup_base_files();
 	std::vector<std::string> get_files(const file_type type);
 	std::vector<std::string> get_untracked_files();
+	std::vector<std::string> get_modified_files();
+	std::vector<std::string> get_deleted_files();
 	bool copy_objects(const std::string& hash);
 	bool add_to_map(map_t map);
 	void add_object_to_files(const file_type type, const std::string& obj);
@@ -35,5 +37,4 @@ namespace repo::util
 	void clear_temp_files();
 	std::vector<map_t> get_map_list();
 	std::string get_repo_directory();
-	bool ignore_spec_objects(const std::string& object);
 }

@@ -1,9 +1,9 @@
 #include "utils.h"
 
 #include <ctime>
-#include <chrono>
 #include <filesystem>
 #include <windows.h>
+#include <cctype>
 
 std::string utils::get_current_directory()
 {
@@ -32,6 +32,17 @@ std::string utils::random_string(std::string::size_type length, const std::strin
 	}
 
 	return str;
+}
+
+std::string utils::to_lower(const std::string& string)
+{
+	std::string ret = string;
+
+	for (char &c : ret) {
+		c = std::tolower(static_cast<unsigned char>(c));
+	}
+
+	return ret;
 }
 
 long long utils::timestamp::get()

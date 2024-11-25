@@ -18,6 +18,7 @@ project (proj)
 	   "cfg/**",
 	   "cli/**",
 	   "fs/**",
+	   "fmt/**",
 	   "repo/**",
 	   "utils/**",
 

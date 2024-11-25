@@ -1,6 +1,7 @@
 #include "cli/cli.h"
 #include "repo/repo.h"
 #include "utils/utils.h"
+#include "fmt/fmt.h"
 
 int main(int argc, const char** argv)
 {
@@ -34,31 +35,18 @@ int main(int argc, const char** argv)
 
 	cli.add("init", [&](int ac, arguments_t args) {
 		if (repo.status == notAuthorized) {
-			std::cout << "Type cmap set <YourUsername> <YourEmail> --user-config" << std::endl;
-			std::cout << "  (You can't initialize repository without user data)" << std::endl;
+			fmt{ fmt_15ms, fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config" };
+			fmt{ fmt_15ms, fc_none, "  (You can't initialize repository without user data)" };
 			return;
 		}
 
 		if (repo::util::setup_base_files() == alreadyExists)
 			repo.status = Active;
 
-		std::cout << "Repository successful " <<
-			(repo.status == Inactive ? "initialized" : "reinitialized") << std::endl;
-		std::cout << "  (" << repo::util::get_repo_directory() << ")" << std::endl;
-		
-		std::cout << std::endl;
+		fmt{ fmt_15ms, fc_none, "Repository successful %s",
+			repo.status == Inactive ? "initialized" : "reinitialized" };
 
-		std::cout << "Some info for newbies" << std::endl;
-
-		std::cout << std::endl;
-
-		std::cout << "Add files to your repository using \"cmap add <Filename>\"" << std::endl;
-		std::cout << "  Or you can check the status of your files with \"cmap status\"" << std::endl;
-
-		std::cout << std::endl;
-
-		std::cout << "After these steps, make a commit with \"cmap commit <YourMessage>\"" << std::endl;
-		std::cout << "  You can view commits along with their hashes, timestamps, and committers using \"cmap log\"." << std::endl;
+		fmt{ fmt_def, fc_none, "  (%s)\n", repo::util::get_repo_directory().c_str() };
 	});
 
 	cli.add("set", [&](int ac, arguments_t args) {
@@ -82,12 +70,12 @@ int main(int argc, const char** argv)
 			break;
 		}
 		case Inactive: {
-			std::cout << "You need initialize repository" << std::endl;
+			fmt{ fmt_15ms, fc_none, "You need initialize repository" };
 			break;
 		}
 		case notAuthorized: {
-			std::cout << "Type cmap set <YourUsername> <YourEmail> --user-config" << std::endl;
-			std::cout << "  (You can't add files without user data)" << std::endl;
+			fmt{ fmt_15ms, fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config" };
+			fmt{ fmt_15ms, fc_none, "  (You can't add files without user data)" };
 			break;
 		}
 		}
@@ -97,7 +85,7 @@ int main(int argc, const char** argv)
 		switch (repo.status) {
 		case Active: {
 			if (repo::util::get_files(tempFiles).empty()) {
-				std::cout << "Add files to the staging area before committing" << std::endl;
+				fmt{ fmt_15ms, fc_none, "Add files to the staging area before committing" };
 				break;
 			}
 
@@ -106,12 +94,12 @@ int main(int argc, const char** argv)
 			break;
 		}
 		case Inactive: {
-			std::cout << "You need initialize repository" << std::endl;
+			fmt{ fmt_15ms, fc_none, "You need initialize repository" };
 			break;
 		}
 		case notAuthorized: {
-			std::cout << "Type cmap set <YourUsername> <YourEmail> --user-config" << std::endl;
-			std::cout << "  (You can't committing without user data)" << std::endl;
+			fmt{ fmt_15ms, fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config" };
+			fmt{ fmt_15ms, fc_none, "  (You can't committing without user data)" };
 			break;
 		}
 		}
@@ -120,16 +108,51 @@ int main(int argc, const char** argv)
 	cli.add("status", [&](int ac, arguments_t args) {
 		switch (repo.status) {
 		case Active: {
-			repo::log(repoStatus);
+			std::vector<std::string> _temporary_files = repo::util::get_files(tempFiles);
+			std::vector<std::string> _untracked_files = repo::util::get_untracked_files();
+			std::vector<std::string> _modified_files = repo::util::get_modified_files();
+			std::vector<std::string> _deleted_files = repo::util::get_deleted_files();
+
+			if (!_temporary_files.empty()) {
+				fmt{ fmt_def, fc_none, "You committing next files\n" };
+				for (const auto& f : _temporary_files) {
+					fmt{ fmt_def, fc_green, "%s%s\n", std::string(5, ' ').c_str(), f.c_str() };
+				}
+			}
+
+			if (!_untracked_files.empty()) {
+				fmt{ fmt_def, fc_none, "Untracked files\n" };
+				for (const auto& f : _untracked_files) {
+					fmt{ fmt_def, fc_none, "%s%s\n", std::string(5, ' ').c_str(), f.c_str() };
+				}
+			}
+
+			if (!_modified_files.empty()) {
+				fmt{ fmt_def, fc_none, "Modified files\n" };
+				for (const auto& f : _modified_files) {
+					fmt{ fmt_def, fc_yellow, "%s%s\n", std::string(5, ' ').c_str(), f.c_str() };
+				}
+			}
+
+			if (!_deleted_files.empty()) {
+				fmt{ fmt_def, fc_none, "Deleted files\n" };
+				for (const auto& f : _deleted_files) {
+					fmt{ fmt_def, fc_red, "%s%s\n", std::string(5, ' ').c_str(), f.c_str() };
+				}
+			}
+
+			if (_temporary_files.empty() && _untracked_files.empty() &&
+				_modified_files.empty() && _deleted_files.empty())
+				fmt{ fmt_def, fc_none, "There is no change. Modify files.\n" };
 			break;
 		}
 		case Inactive: {
-			std::cout << "You need initialize repository" << std::endl;
+			fmt{ fmt_def, fc_none, "You need initialize repository\n" };
 			break;
 		}
 		case notAuthorized: {
-			std::cout << "Type cmap set <YourUsername> <YourEmail> --user-config" << std::endl;
-			std::cout << "  (You can't check status without user data)" << std::endl;
+			fmt{ fmt_15ms, fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config" };
+			fmt{ fmt_15ms, fc_none, "  (You can't check status without user data)" };
 			break;
 		}
 		}
@@ -138,16 +161,25 @@ int main(int argc, const char** argv)
 	cli.add("log", [&](int ac, arguments_t args) {
 		switch (repo.status) {
 		case Active: {
-			repo::log(repoLog);
+			std::vector<map_t> map = repo::util::get_map_list();
+			for (const auto& obj : map) {
+				fmt{ fmt_def, fc_none, "%s\n\n", obj.hash.c_str() };
+				fmt{ fmt_def, fc_none, "%s%s\n\n", std::string(5, ' ').c_str(), obj.msg.c_str() };
+				fmt{ fmt_def, fc_none, "%s%s | %s <%s>\n\n",
+					std::string(obj.msg.length() + 5, ' ').c_str(),
+					utils::timestamp::fmt(obj.timestamp).c_str(),
+					obj.cfg.username.c_str(),
+					obj.cfg.email.c_str() };
+			}
 			break;
 		}
 		case Inactive: {
-			std::cout << "You need initialize repository" << std::endl;
+			fmt{ fmt_def, fc_none, "You need initialize repository\n" };
 			break;
 		}
 		case notAuthorized: {
-			std::cout << "Type cmap set <YourUsername> <YourEmail> --user-config" << std::endl;
-			std::cout << "  (You can't check logs without user data)" << std::endl;
+			fmt{ fmt_15ms, fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config" };
+			fmt{ fmt_15ms, fc_none, "  (You can't check logs without user data)" };
 			break;
 		}
 		}

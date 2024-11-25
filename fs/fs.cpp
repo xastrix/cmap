@@ -3,6 +3,8 @@
 #include <windows.h>
 #include <fstream>
 
+#include "../config.h"
+
 fs_obj fs::exists(const std::string& path)
 {
 	struct stat   s;
@@ -21,6 +23,20 @@ fs_obj fs::exists(const std::string& path)
 	}
 
 	return o;
+}
+
+long fs::get_file_size(const std::string& filename)
+{
+	FILE* f = fopen(filename.c_str(), "rb");
+	if (f == NULL) {
+		return -1;
+	}
+
+	fseek(f, 0, SEEK_END);
+	long size = ftell(f);
+
+	fclose(f);
+	return size;
 }
 
 bool fs::make_directory(const std::string& dirname, int attributes)
@@ -81,6 +97,9 @@ void fs::get_directory_files(const std::string& dirname, char** files, int* num,
 
 	do {
 		if (strcmp(data.cFileName, ".") == 0 || strcmp(data.cFileName, "..") == 0)
+			continue;
+
+		if (dirname.find(ENV_BASE_DIRECTORY) != std::string::npos)
 			continue;
 
 		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && mode == fmFiles)
