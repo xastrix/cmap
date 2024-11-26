@@ -3,25 +3,6 @@
 #include "../fs/fs.h"
 #include "../utils/utils.h"
 
-#include <json/json.h>
-
-struct json_object {
-	Json::Value value;
-};
-
-static json_object parse_json(const std::string& content)
-{
-	json_object ret;
-
-	Json::CharReaderBuilder reader_builder{};
-	std::istringstream ss{ content };
-	Json::String log{};
-
-	Json::parseFromStream(reader_builder, ss, &ret.value, &log);
-
-	return ret;
-}
-
 base_files_stat repo::util::setup_base_files()
 {
 	base_files_stat ret = setupNews;
@@ -48,18 +29,18 @@ base_files_stat repo::util::setup_base_files()
 std::vector<std::string> repo::util::get_files(const file_type type)
 {
 	std::vector<std::string> _files;
-	json_object object = parse_json(fs::get_file_content(ENV_FILES_FILENAME));
+	json_object object = utils::parse_json(fs::get_file_content(ENV_FILES_FILENAME));
 
 	switch (type) {
 	case trackingFiles: {
-		for (int i = 0; i < object.value["Tracking"].size(); i++) {
-			_files.push_back(object.value["Tracking"][i].asString());
+		for (int i = 0; i < object.ptr["Tracking"].size(); i++) {
+			_files.push_back(object.ptr["Tracking"][i].asString());
 		}
 		break;
 	}
 	case tempFiles: {
-		for (int i = 0; i < object.value["Temp"].size(); i++) {
-			_files.push_back(object.value["Temp"][i].asString());
+		for (int i = 0; i < object.ptr["Temp"].size(); i++) {
+			_files.push_back(object.ptr["Temp"][i].asString());
 		}
 		break;
 	}
@@ -151,18 +132,18 @@ std::vector<std::string> repo::util::get_deleted_files()
 
 bool repo::util::copy_objects(const std::string& hash)
 {
-	json_object object = parse_json(fs::get_file_content(ENV_FILES_FILENAME));
+	json_object object = utils::parse_json(fs::get_file_content(ENV_FILES_FILENAME));
 	std::string commit_directory{ ENV_STORAGE_DIRECTORY "/" + hash };
 
 	if (!fs::make_directory(commit_directory))
 		return false;
 
-	for (int i = 0; i < object.value["Temp"].size(); i++)
+	for (int i = 0; i < object.ptr["Temp"].size(); i++)
 	{
-		if (!fs::exists(object.value["Temp"][i].asString()).as(existNone))
+		if (!fs::exists(object.ptr["Temp"][i].asString()).as(existNone))
 		{
-			std::string source{ object.value["Temp"][i].asString() };
-			std::string destination{ commit_directory + "/" + object.value["Temp"][i].asString() };
+			std::string source{ object.ptr["Temp"][i].asString() };
+			std::string destination{ commit_directory + "/" + object.ptr["Temp"][i].asString() };
 
 			fs::copy(source, destination, std::filesystem::copy_options::recursive);
 		}
@@ -173,14 +154,14 @@ bool repo::util::copy_objects(const std::string& hash)
 
 bool repo::util::add_to_map(map_t map)
 {
-	json_object object = parse_json(fs::get_file_content(ENV_COMMITMAP_FILENAME));
+	json_object object = utils::parse_json(fs::get_file_content(ENV_COMMITMAP_FILENAME));
 
-	object.value[map.hash]["msg"] = map.msg;
-	object.value[map.hash]["committer"]["username"] = map.cfg.username;
-	object.value[map.hash]["committer"]["email"] = map.cfg.email;
-	object.value[map.hash]["timestamp"] = map.timestamp;
+	object.ptr[map.hash]["msg"] = map.msg;
+	object.ptr[map.hash]["committer"]["username"] = map.cfg.username;
+	object.ptr[map.hash]["committer"]["email"] = map.cfg.email;
+	object.ptr[map.hash]["timestamp"] = map.timestamp;
 
-	if (!fs::make_file(ENV_COMMITMAP_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.value)))
+	if (!fs::make_file(ENV_COMMITMAP_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.ptr)))
 		return false;
 
 	return true;
@@ -188,7 +169,7 @@ bool repo::util::add_to_map(map_t map)
 
 void repo::util::add_object_to_files(const file_type type, const std::string& obj)
 {
-	json_object object = parse_json(fs::get_file_content(ENV_FILES_FILENAME));
+	json_object object = utils::parse_json(fs::get_file_content(ENV_FILES_FILENAME));
 
 	std::string member_name{};
 
@@ -197,19 +178,19 @@ void repo::util::add_object_to_files(const file_type type, const std::string& ob
 	if (type == trackingFiles)
 		member_name = "Tracking";
 
-	for (int i = 0; i < object.value[member_name].size(); i++) {
-		if (object.value[member_name][i].asString() == obj) {
+	for (int i = 0; i < object.ptr[member_name].size(); i++) {
+		if (object.ptr[member_name][i].asString() == obj) {
 			return;
 		}
 	}
 
-	object.value[member_name].append(obj);
-	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.value));
+	object.ptr[member_name].append(obj);
+	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.ptr));
 }
 
 void repo::util::remove_object_from_files(const file_type type, const std::string& obj)
 {
-	json_object object = parse_json(fs::get_file_content(ENV_FILES_FILENAME));
+	json_object object = utils::parse_json(fs::get_file_content(ENV_FILES_FILENAME));
 
 	std::string member_name{};
 
@@ -218,39 +199,39 @@ void repo::util::remove_object_from_files(const file_type type, const std::strin
 	if (type == trackingFiles)
 		member_name = "Tracking";
 
-	for (Json::ValueIterator& it = object.value[member_name].begin();
-		it != object.value[member_name].end(); ++it)
+	for (Json::ValueIterator& it = object.ptr[member_name].begin();
+		it != object.ptr[member_name].end(); ++it)
 	{
 		if (it->asString() == obj) {
-			object.value[member_name].removeIndex(it.index(), nullptr);
+			object.ptr[member_name].removeIndex(it.index(), nullptr);
 		}
 	}
 
-	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.value));
+	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.ptr));
 }
 
 void repo::util::clear_temp_files()
 {
-	json_object object = parse_json(fs::get_file_content(ENV_FILES_FILENAME));
+	json_object object = utils::parse_json(fs::get_file_content(ENV_FILES_FILENAME));
 
-	object.value["Temp"] = Json::arrayValue;
-	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.value));
+	object.ptr["Temp"] = Json::arrayValue;
+	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.ptr));
 }
 
 std::vector<map_t> repo::util::get_map_list()
 {
 	std::vector<map_t> _map_list;
-	json_object object = parse_json(fs::get_file_content(ENV_COMMITMAP_FILENAME));
+	json_object object = utils::parse_json(fs::get_file_content(ENV_COMMITMAP_FILENAME));
 
-	for (int i = 0; i < object.value.getMemberNames().size(); i++) {
+	for (int i = 0; i < object.ptr.getMemberNames().size(); i++) {
 		map_t map;
 		cfg_t cfg;
 
-		map.hash      = object.value.getMemberNames()[i];
-		map.msg       = object.value[object.value.getMemberNames()[i]]["msg"].asString();
-		map.timestamp = object.value[object.value.getMemberNames()[i]]["timestamp"].asLargestUInt();
-		cfg.username  = object.value[object.value.getMemberNames()[i]]["committer"]["username"].asString();
-		cfg.email     = object.value[object.value.getMemberNames()[i]]["committer"]["email"].asString();
+		map.hash      = object.ptr.getMemberNames()[i];
+		map.msg       = object.ptr[object.ptr.getMemberNames()[i]]["msg"].asString();
+		map.timestamp = object.ptr[object.ptr.getMemberNames()[i]]["timestamp"].asLargestUInt();
+		cfg.username  = object.ptr[object.ptr.getMemberNames()[i]]["committer"]["username"].asString();
+		cfg.email     = object.ptr[object.ptr.getMemberNames()[i]]["committer"]["email"].asString();
 		map.cfg       = cfg;
 
 		if (fs::find_files_in_directories(ENV_STORAGE_DIRECTORY, map.hash))

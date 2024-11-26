@@ -45,6 +45,19 @@ std::string utils::to_lower(const std::string& string)
 	return ret;
 }
 
+json_object utils::parse_json(const std::string& content)
+{
+	json_object ret;
+
+	Json::CharReaderBuilder reader_builder{};
+	std::istringstream ss{ content };
+	Json::String log{};
+
+	Json::parseFromStream(reader_builder, ss, &ret.ptr, &log);
+
+	return ret;
+}
+
 long long utils::timestamp::get()
 {
 	auto now = std::chrono::system_clock::now();

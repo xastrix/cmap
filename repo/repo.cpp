@@ -37,13 +37,16 @@ repo_t repo::initialize()
 
 void repo::add_object(const std::string& path)
 {
+	bool noReasonToAdding = util::get_untracked_files().empty() && util::get_modified_files().empty();
+
 	if (fs::exists(path).as(existNone)) {
 		fmt{ fmt_15ms, fc_none, "The file or directory at '%s' was not found", path.c_str() };
 		looking_for_similars(path);
 	}
 
 	else if (fs::exists(path).as(existObject)) {
-		util::add_object_to_files(tempFiles, path);
+		if (!noReasonToAdding)
+			util::add_object_to_files(tempFiles, path);
 	}
 
 	else if (fs::exists(path).as(existDirectory)) {
@@ -53,7 +56,8 @@ void repo::add_object(const std::string& path)
 		fs::get_directory_files(path, files, &file_num, fmRecursive);
 
 		for (int i = 0; i < file_num; i++) {
-			repo::util::add_object_to_files(tempFiles, files[i]);
+			if (!noReasonToAdding)
+				repo::util::add_object_to_files(tempFiles, files[i]);
 		}
 	}
 }
