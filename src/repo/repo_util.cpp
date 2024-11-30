@@ -60,6 +60,9 @@ std::vector<std::string> repo::util::get_untracked_files()
 
 	for (int i = 0; i < current_file_num; i++)
 	{
+		if (std::string{ current_files[i] }.substr(0, std::string{ ENV_BASE_DIRECTORY }.length()) == ENV_BASE_DIRECTORY)
+			continue;
+
 		bool already_exists = false;
 
 		for (int k = 0; k < get_files(trackingFiles).size(); k++) {

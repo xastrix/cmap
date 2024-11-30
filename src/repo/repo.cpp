@@ -45,6 +45,9 @@ void repo::add_object(const std::string& path)
 	}
 
 	else if (fs::exists(path).as(existObject)) {
+		if (std::string{ path }.substr(0, std::string{ ENV_BASE_DIRECTORY }.length()) == ENV_BASE_DIRECTORY)
+			return;
+
 		if (!noReasonToAdding)
 			util::add_object_to_files(tempFiles, path);
 	}
@@ -56,6 +59,9 @@ void repo::add_object(const std::string& path)
 		fs::get_directory_files(path, files, &file_num, fmRecursive);
 
 		for (int i = 0; i < file_num; i++) {
+			if (std::string{ files[i] }.substr(0, std::string{ ENV_BASE_DIRECTORY }.length()) == ENV_BASE_DIRECTORY)
+				continue;
+
 			if (!noReasonToAdding)
 				repo::util::add_object_to_files(tempFiles, files[i]);
 		}

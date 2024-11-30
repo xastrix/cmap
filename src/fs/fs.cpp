@@ -98,10 +98,7 @@ void fs::get_directory_files(const std::string& dirname, char** files, int* num,
 	do {
 		if (strcmp(data.cFileName, ".") == 0 || strcmp(data.cFileName, "..") == 0)
 			continue;
-
-		//if (dirname.find(ENV_BASE_DIRECTORY) != std::string::npos)
-			//continue;
-
+		
 		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && mode == fmFiles)
 			continue;
 
