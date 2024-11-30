@@ -21,7 +21,7 @@ fmt::fmt(fmt_mode mode, fmt_col col, const char* fmt, ...)
 	if (mode != fmt_def) {
 		char* word = strtok(buffer, " ");
 		while (word != NULL) {
-			std::cout << " " << word;
+			std::cout << word << " ";
 			if (mode == fmt_15ms)
 				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 			word = strtok(NULL, " ");
