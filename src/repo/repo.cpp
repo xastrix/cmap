@@ -12,7 +12,7 @@ static void looking_for_similars(const std::string& path)
 	fs::find_similar_files(path, ".", similars, &similar_num);
 
 	for (int i = 0; i < similar_num; i++) {
-		fmt{ fmt_def, fc_none, "%s - %s?\n", std::string(5, ' ').c_str(), similars[i] };
+		fmt{ fc_none, "%s - %s?\n", std::string(5, ' ').c_str(), similars[i] };
 	}
 }
 
@@ -40,7 +40,7 @@ void repo::add_object(const std::string& path)
 	bool noReasonToAdding = util::get_untracked_files().empty() && util::get_modified_files().empty();
 
 	if (fs::exists(path).as(existNone) || path.substr(0, std::string{ ENV_BASE_DIRECTORY }.length()) == ENV_BASE_DIRECTORY) {
-		fmt{ fmt_15ms, fc_none, "The file or directory at '%s' was not found", path.c_str() };
+		fmt{ fc_none, "The file or directory at '%s' was not found\n", path.c_str() };
 		looking_for_similars(path);
 	}
 
@@ -87,4 +87,38 @@ void repo::set_commit(cfg_t cfg, const std::string& msg)
 
 		util::clear_temp_files();
 	}
+}
+
+void repo::revert_commit(const std::string& hash)
+{
+	auto map = util::get_map_list();
+
+	if (map.empty()) {
+		fmt{ fc_none, "You dont have any commit.\n" };
+		return;
+	}
+
+	bool hash_founded = false;
+	for (int i = 0; i < map.size(); i++) {
+		if (map[i].hash == hash) {
+			hash_founded = true;
+			break;
+		}
+	}
+
+	if (!hash_founded) {
+		fmt{ fc_none, "Hash '%s' not found --\n", hash.c_str() };
+		for (int i = 0; i < map.size(); i++) {
+			fmt{ fc_none, "%s - %s\n", map[i].hash.c_str(), utils::timestamp::fmt(map[i].timestamp).c_str() };
+		}
+		return;
+	}
+
+	std::string source_path{ ENV_STORAGE_DIRECTORY "\\" + hash };
+	std::string dest_path{ utils::get_current_directory() + "\\" };
+
+	fs::copy(source_path, dest_path,
+		std::filesystem::copy_options::recursive |
+		std::filesystem::copy_options::overwrite_existing
+	);
 }

@@ -103,7 +103,6 @@ std::vector<std::string> repo::util::get_modified_files()
 				if (fs::get_file_size(tracked_path) != fs::get_file_size(file_path))
 				{
 					_modified_files.push_back(get_files(trackingFiles)[i]);
-					break;
 				}
 			}
 		}

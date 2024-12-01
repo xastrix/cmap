@@ -15,11 +15,6 @@ enum fmt_col {
 	fc_reset = fc_white,
 };
 
-enum fmt_mode {
-	fmt_def,
-	fmt_15ms,
-};
-
 struct fmt {
-	fmt(fmt_mode mode, fmt_col col, const char* fmt, ...);
+	fmt(fmt_col col, const char* fmt, ...);
 };

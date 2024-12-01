@@ -18,4 +18,5 @@ namespace repo
 	void add_object(const std::string& path);
 	void remove_object(const std::string& path);
 	void set_commit(cfg_t cfg, const std::string& msg);
+	void revert_commit(const std::string& hash);
 }
