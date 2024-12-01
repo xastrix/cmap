@@ -36,7 +36,7 @@ int main(int argc, const char** argv)
 	cli.add("init", [&](int ac, arguments_t args) {
 		if (repo.status == notAuthorized) {
 			fmt{ fmt_15ms, fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config" };
-			fmt{ fmt_15ms, fc_none, "  (You can't initialize repository without user data)" };
+			fmt{ fmt_def, fc_none, "  (You can't initialize repository without user data)\n" };
 			return;
 		}
 
@@ -75,7 +75,7 @@ int main(int argc, const char** argv)
 		}
 		case notAuthorized: {
 			fmt{ fmt_15ms, fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config" };
-			fmt{ fmt_15ms, fc_none, "  (You can't add files without user data)" };
+			fmt{ fmt_def, fc_none, "  (You can't add files without user data)\n" };
 			break;
 		}
 		}
@@ -99,7 +99,7 @@ int main(int argc, const char** argv)
 		}
 		case notAuthorized: {
 			fmt{ fmt_15ms, fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config" };
-			fmt{ fmt_15ms, fc_none, "  (You can't committing without user data)" };
+			fmt{ fmt_def, fc_none, "  (You can't committing without user data)\n" };
 			break;
 		}
 		}
@@ -143,7 +143,7 @@ int main(int argc, const char** argv)
 
 			if (_temporary_files.empty() && _untracked_files.empty() &&
 				_modified_files.empty() && _deleted_files.empty())
-				fmt{ fmt_def, fc_none, "There is no change. Modify files.\n" };
+				fmt{ fmt_15ms, fc_none, "There is no change. Modify files." };
 			break;
 		}
 		case Inactive: {
@@ -152,7 +152,7 @@ int main(int argc, const char** argv)
 		}
 		case notAuthorized: {
 			fmt{ fmt_15ms, fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config" };
-			fmt{ fmt_15ms, fc_none, "  (You can't check status without user data)" };
+			fmt{ fmt_def, fc_none, "  (You can't check status without user data)\n" };
 			break;
 		}
 		}
@@ -161,15 +161,15 @@ int main(int argc, const char** argv)
 	cli.add("log", [&](int ac, arguments_t args) {
 		switch (repo.status) {
 		case Active: {
-			std::vector<map_t> map = repo::util::get_map_list();
-			for (const auto& obj : map) {
-				fmt{ fmt_def, fc_none, "%s\n\n", obj.hash.c_str() };
-				fmt{ fmt_def, fc_none, "%s%s\n\n", std::string(5, ' ').c_str(), obj.msg.c_str() };
+			auto map = repo::util::get_map_list();
+			for (int i = 0; i < map.size(); i++) {
+				fmt{ fmt_def, fc_none, "%s\n\n", map[i].hash.c_str() };
+				fmt{ fmt_def, fc_none, "%s%s\n\n", std::string(5, ' ').c_str(), map[i].msg.c_str() };
 				fmt{ fmt_def, fc_none, "%s%s | %s <%s>\n\n",
-					std::string(obj.msg.length() + 5, ' ').c_str(),
-					utils::timestamp::fmt(obj.timestamp).c_str(),
-					obj.cfg.username.c_str(),
-					obj.cfg.email.c_str() };
+					std::string(map[i].msg.length() + 5, ' ').c_str(),
+					utils::timestamp::fmt(map[i].timestamp).c_str(),
+					map[i].cfg.username.c_str(),
+					map[i].cfg.email.c_str() };
 			}
 			break;
 		}
@@ -179,7 +179,7 @@ int main(int argc, const char** argv)
 		}
 		case notAuthorized: {
 			fmt{ fmt_15ms, fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config" };
-			fmt{ fmt_15ms, fc_none, "  (You can't check logs without user data)" };
+			fmt{ fmt_def, fc_none, "  (You can't check logs without user data)\n" };
 			break;
 		}
 		}

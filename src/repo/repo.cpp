@@ -39,15 +39,12 @@ void repo::add_object(const std::string& path)
 {
 	bool noReasonToAdding = util::get_untracked_files().empty() && util::get_modified_files().empty();
 
-	if (fs::exists(path).as(existNone)) {
+	if (fs::exists(path).as(existNone) || path.substr(0, std::string{ ENV_BASE_DIRECTORY }.length()) == ENV_BASE_DIRECTORY) {
 		fmt{ fmt_15ms, fc_none, "The file or directory at '%s' was not found", path.c_str() };
 		looking_for_similars(path);
 	}
 
 	else if (fs::exists(path).as(existObject)) {
-		if (std::string{ path }.substr(0, std::string{ ENV_BASE_DIRECTORY }.length()) == ENV_BASE_DIRECTORY)
-			return;
-
 		if (!noReasonToAdding)
 			util::add_object_to_files(tempFiles, path);
 	}

@@ -202,7 +202,7 @@ void repo::util::remove_object_from_files(const file_type type, const std::strin
 	if (type == trackingFiles)
 		member_name = "Tracking";
 
-	for (Json::ValueIterator& it = object.ptr[member_name].begin();
+	for (auto& it = object.ptr[member_name].begin();
 		it != object.ptr[member_name].end(); ++it)
 	{
 		if (it->asString() == obj) {
