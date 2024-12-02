@@ -7,11 +7,11 @@
 #include <fstream>
 #include <sstream>
 
-static cfg_t read_values()
+static cfg_t read_values_from_configuration_file()
 {
 	cfg_t cfg;
 
-	std::ifstream f{ utils::get_user_directory() + ENV_CONFIGURATION_FILENAME };
+	std::ifstream f{ utils::get_user_directory() + "\\" ENV_CONFIGURATION_FILENAME };
 
 	if (!f.is_open()) {
 		return cfg;
@@ -64,7 +64,7 @@ static bool set_config_values(cfg_t data)
 		data.username.c_str(), data.email.c_str()
 	);
 
-	return fs::make_file(utils::get_user_directory() + ENV_CONFIGURATION_FILENAME, fields);
+	return fs::make_file(utils::get_user_directory() + "\\" ENV_CONFIGURATION_FILENAME, fields);
 }
 
 cfg_t cfg::initialize()
@@ -74,10 +74,10 @@ cfg_t cfg::initialize()
 	cfg.username = "?";
 	cfg.email    = "?";
 
-	if (!fs::exists(utils::get_user_directory() + ENV_CONFIGURATION_FILENAME).as(existObject))
+	if (!fs::exists(utils::get_user_directory() + "\\" ENV_CONFIGURATION_FILENAME).as(existObject))
 		set_config_values(cfg);
 
-	return cfg = read_values();
+	return cfg = read_values_from_configuration_file();
 }
 
 bool cfg::update_cfg(cfg_t data)

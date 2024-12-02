@@ -1,6 +1,5 @@
 #include "utils.h"
 
-#include <iostream>
 #include <ctime>
 #include <filesystem>
 #include <windows.h>
@@ -16,7 +15,7 @@ std::string utils::get_current_directory()
 
 std::string utils::get_user_directory()
 {
-	return std::string{ getenv("USERPROFILE") } + "\\";
+	return getenv("USERPROFILE");
 }
 
 std::string utils::random_string(std::string::size_type length, const std::string& chars)

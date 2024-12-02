@@ -5,7 +5,7 @@
 
 base_files_stat repo::util::setup_base_files()
 {
-	base_files_stat ret = setupNews;
+	base_files_stat ret = InitializeNew;
 
 	if (!fs::make_directory(ENV_BASE_DIRECTORY, 2))
 		if (fs::exists(ENV_BASE_DIRECTORY).as(existDirectory))

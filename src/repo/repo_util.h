@@ -15,7 +15,7 @@ struct map_t {
 
 enum base_files_stat {
 	alreadyExists,
-	setupNews,
+	InitializeNew,
 };
 
 enum file_type {
