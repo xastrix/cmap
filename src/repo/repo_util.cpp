@@ -135,7 +135,7 @@ std::vector<std::string> repo::util::get_deleted_files()
 bool repo::util::copy_objects(const std::string& hash)
 {
 	json_object object = utils::parse_json(fs::get_file_content(ENV_FILES_FILENAME));
-	std::string commit_directory{ ENV_STORAGE_DIRECTORY "/" + hash };
+	std::string commit_directory{ ENV_STORAGE_DIRECTORY "\\" + hash };
 
 	if (!fs::make_directory(commit_directory))
 		return false;
@@ -145,7 +145,7 @@ bool repo::util::copy_objects(const std::string& hash)
 		if (!fs::exists(object.ptr["Temp"][i].asString()).as(existNone))
 		{
 			std::string source{ object.ptr["Temp"][i].asString() };
-			std::string destination{ commit_directory + "/" + object.ptr["Temp"][i].asString() };
+			std::string destination{ commit_directory + "\\" + object.ptr["Temp"][i].asString() };
 
 			fs::copy(source, destination, std::filesystem::copy_options::recursive);
 		}

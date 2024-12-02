@@ -1,9 +1,9 @@
 #include "fs.h"
 
-#include <windows.h>
-#include <fstream>
-
 #include "../config.h"
+#include "../fmt/fmt.h"
+
+#include <fstream>
 
 fs_obj fs::exists(const std::string& path)
 {
@@ -170,6 +170,14 @@ bool fs::find_files_in_directories(const std::string& dirname, const std::string
 
 void fs::copy(const std::string& source, const std::string& destination, const std::filesystem::copy_options options)
 {
-	std::filesystem::create_directories(std::filesystem::path(destination).parent_path());
-	return std::filesystem::copy(source, destination, options);
+	try {
+		std::filesystem::create_directories(std::filesystem::path(destination).parent_path());
+		std::filesystem::copy(source, destination, options);
+	}
+	catch (const std::filesystem::filesystem_error& e) {
+		fmt{ fc_red, "%s\n", e.what() };
+	}
+	catch (const std::exception& e) {
+		fmt{ fc_red, "%s\n", e.what() };
+	}
 }
