@@ -113,7 +113,7 @@ std::vector<std::string> repo::util::get_modified_files()
 
 		if (fs::exists(tracked_path).as(existObject))
 		{
-			std::string file_path{ ENV_STORAGE_DIRECTORY "\\" + get_map_list().back().hash + "\\" + tracked_path };
+			std::string file_path{ ENV_STORAGE_DIRECTORY "\\" + get_last_map_data().hash + "\\" + tracked_path };
 
 			if (fs::exists(file_path).as(existObject))
 			{
@@ -136,7 +136,7 @@ std::vector<std::string> repo::util::get_deleted_files()
 
 	for (int i = 0; i < tracking_files.size(); i++)
 	{
-		std::string file_path{ ENV_STORAGE_DIRECTORY "\\" + get_map_list().back().hash + "\\" + tracking_files[i] };
+		std::string file_path{ ENV_STORAGE_DIRECTORY "\\" + get_last_map_data().hash + "\\" + tracking_files[i] };
 
 		if (fs::exists(file_path).as(existObject))
 		{
@@ -267,6 +267,25 @@ std::vector<map_t> repo::util::get_map_list()
 	}
 
 	return _map_list;
+}
+
+map_t repo::util::get_last_map_data()
+{
+	map_t ret;
+
+	auto map = get_map_list();
+
+	if (map.empty())
+		return ret;
+
+	ret = map[0];
+
+	for (const auto& obj : map) {
+		if (obj.timestamp > ret.timestamp)
+			ret = obj;
+	}
+
+	return ret;
 }
 
 std::string repo::util::get_repo_directory()

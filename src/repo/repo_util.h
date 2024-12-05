@@ -10,7 +10,7 @@
 struct map_t {
 	std::string hash, msg;
 	cfg_t cfg;
-	long long timestamp;
+	int64_t timestamp;
 };
 
 enum base_files_stat {
@@ -35,5 +35,6 @@ namespace repo::util
 	void add_object_to_files(const file_type type, const std::string& obj);
 	void remove_object_from_files(const file_type type, const std::string& obj);
 	std::vector<map_t> get_map_list();
+	map_t get_last_map_data();
 	std::string get_repo_directory();
 }

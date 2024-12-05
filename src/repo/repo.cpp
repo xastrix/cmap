@@ -37,7 +37,8 @@ repo_t repo::initialize()
 
 void repo::add_object(const std::string& path)
 {
-	bool noReasonToAdding = util::get_untracked_files().empty() && util::get_modified_files().empty();
+	auto noReasonToAdding = util::get_untracked_files().empty() && util::get_modified_files().empty();
+	auto tracking_files   = util::get_files(trackingFiles);
 
 	if (fs::exists(path).as(existNone) || path.substr(0, std::string{ ENV_BASE_DIRECTORY }.length()) == ENV_BASE_DIRECTORY) {
 		fmt{ fc_none, "The file or directory at '%s' was not found\n", path.c_str() };
@@ -45,6 +46,11 @@ void repo::add_object(const std::string& path)
 	}
 
 	else if (fs::exists(path).as(existObject)) {
+		for (int i = 0; i < tracking_files.size(); i++) {
+			if (tracking_files[i] == path)
+				return;
+		}
+
 		if (!noReasonToAdding)
 			util::add_object_to_files(tempFiles, path);
 	}
@@ -66,6 +72,17 @@ void repo::add_object(const std::string& path)
 		for (int i = 0; i < file_num; i++)
 		{
 			if (std::string{ files[i] }.substr(0, std::string{ ENV_BASE_DIRECTORY }.length()) == ENV_BASE_DIRECTORY)
+				continue;
+
+			bool already_exists = false;
+			for (int j = 0; j < tracking_files.size(); j++) {
+				if (tracking_files[j] == files[i]) {
+					already_exists = true;
+					break;
+				}
+			}
+
+			if (already_exists)
 				continue;
 
 			if (!noReasonToAdding)

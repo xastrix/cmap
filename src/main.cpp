@@ -203,6 +203,11 @@ int main(int argc, const char** argv)
 		switch (repo.status) {
 		case Active: {
 			auto map = repo::util::get_map_list();
+
+			std::sort(map.begin(), map.end(), [](const map_t& a, const map_t& b) {
+				return a.timestamp > b.timestamp;
+			});
+
 			for (int i = 0; i < map.size(); i++) {
 				fmt{ fc_none, "%s\n\n", map[i].hash.c_str() };
 				fmt{ fc_none, "%s%s\n\n", std::string(5, ' ').c_str(), map[i].msg.c_str() };

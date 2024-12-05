@@ -66,10 +66,10 @@ int64_t utils::timestamp::get()
 
 std::string utils::timestamp::fmt(int64_t timestamp)
 {
-	long long diff    = get() - timestamp;
-	long long seconds = diff / 1000;
-	long long hours   = seconds / 3600;
-	long long minutes = (seconds % 3600) / 60;
+	int64_t diff    = get() - timestamp;
+	int64_t seconds = diff / 1000;
+	int64_t hours   = seconds / 3600;
+	int64_t minutes = (seconds % 3600) / 60;
 
 	std::string result;
 
