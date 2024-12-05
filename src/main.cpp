@@ -96,7 +96,9 @@ int main(int argc, const char** argv)
 		switch (repo.status) {
 		case Active: {
 			auto temp_files = repo::util::get_files(tempFiles);
-			if (temp_files.empty()) {
+			auto modified_files = repo::util::get_modified_files();
+
+			if (temp_files.empty() && modified_files.empty()) {
 				fmt{ fc_none, "Add files to the staging area before committing\n" };
 				break;
 			}
