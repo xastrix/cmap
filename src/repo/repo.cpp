@@ -88,19 +88,21 @@ void repo::set_commit_message(cfg_t cfg, const std::string& msg)
 	map.msg       = msg;
 	map.cfg       = cfg;
 
-	if (util::add_to_map(map) && util::copy_objects(map.hash))
-	{
-		auto temp_files = repo::util::get_files(tempFiles);
-
-		for (int i = 0; i < temp_files.size(); i++) {
-			util::add_object_to_files(trackingFiles, temp_files[i]);
-		}
-
-		json_object object = utils::parse_json(ENV_FILES_FILENAME);
-
-		object.ptr["Temp"] = Json::arrayValue;
-		fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.ptr));
+	if (!util::add_to_map(map) || !util::copy_objects(map.hash)) {
+		fmt{ fc_none, "Failed to add a commit to file with commit data\n" };
+		return;
 	}
+
+	auto temp_files = repo::util::get_files(tempFiles);
+
+	for (int i = 0; i < temp_files.size(); i++) {
+		util::add_object_to_files(trackingFiles, temp_files[i]);
+	}
+
+	json_object object = utils::parse_json(ENV_FILES_FILENAME);
+
+	object.ptr[ENV_TEMP_FILES_MEMBER_NAME] = Json::arrayValue;
+	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.ptr));
 }
 
 void repo::set_commit_action(const std::string& hash, commit_action action)

@@ -33,14 +33,14 @@ std::vector<std::string> repo::util::get_files(const file_type type)
 
 	switch (type) {
 	case trackingFiles: {
-		for (int i = 0; i < object.ptr["Tracking"].size(); i++) {
-			_files.push_back(object.ptr["Tracking"][i].asString());
+		for (int i = 0; i < object.ptr[ENV_TRACKING_FILES_MEMBER_NAME].size(); i++) {
+			_files.push_back(object.ptr[ENV_TRACKING_FILES_MEMBER_NAME][i].asString());
 		}
 		break;
 	}
 	case tempFiles: {
-		for (int i = 0; i < object.ptr["Temp"].size(); i++) {
-			_files.push_back(object.ptr["Temp"][i].asString());
+		for (int i = 0; i < object.ptr[ENV_TEMP_FILES_MEMBER_NAME].size(); i++) {
+			_files.push_back(object.ptr[ENV_TEMP_FILES_MEMBER_NAME][i].asString());
 		}
 		break;
 	}
@@ -160,12 +160,23 @@ bool repo::util::copy_objects(const std::string& hash)
 	if (!fs::make_directory(commit_directory))
 		return false;
 
-	for (int i = 0; i < object.ptr["Temp"].size(); i++)
+	for (int i = 0; i < object.ptr[ENV_TEMP_FILES_MEMBER_NAME].size(); i++)
 	{
-		if (!fs::exists(object.ptr["Temp"][i].asString()).as(existNone))
+		if (!fs::exists(object.ptr[ENV_TEMP_FILES_MEMBER_NAME][i].asString()).as(existNone))
 		{
-			std::string source{ object.ptr["Temp"][i].asString() };
-			std::string destination{ commit_directory + "\\" + object.ptr["Temp"][i].asString() };
+			std::string source{ object.ptr[ENV_TEMP_FILES_MEMBER_NAME][i].asString() };
+			std::string destination{ commit_directory + "\\" + object.ptr[ENV_TEMP_FILES_MEMBER_NAME][i].asString() };
+
+			fs::copy(source, destination, std::filesystem::copy_options::recursive);
+		}
+	}
+
+	for (int j = 0; j < object.ptr[ENV_TRACKING_FILES_MEMBER_NAME].size(); j++)
+	{
+		if (!fs::exists(object.ptr[ENV_TRACKING_FILES_MEMBER_NAME][j].asString()).as(existNone))
+		{
+			std::string source{ object.ptr[ENV_TRACKING_FILES_MEMBER_NAME][j].asString() };
+			std::string destination{ commit_directory + "\\" + object.ptr[ENV_TRACKING_FILES_MEMBER_NAME][j].asString() };
 
 			fs::copy(source, destination, std::filesystem::copy_options::recursive);
 		}
@@ -196,10 +207,10 @@ void repo::util::add_object_to_files(const file_type type, const std::string& ob
 	std::string member_name{};
 
 	if (type == tempFiles)
-		member_name = "Temp";
+		member_name = ENV_TEMP_FILES_MEMBER_NAME;
 	
 	else if (type == trackingFiles)
-		member_name = "Tracking";
+		member_name = ENV_TRACKING_FILES_MEMBER_NAME;
 
 	for (int i = 0; i < object.ptr[member_name].size(); i++) {
 		if (object.ptr[member_name][i].asString() == obj) {
@@ -218,10 +229,10 @@ void repo::util::remove_object_from_files(const file_type type, const std::strin
 	std::string member_name{};
 
 	if (type == tempFiles)
-		member_name = "Temp";
+		member_name = ENV_TEMP_FILES_MEMBER_NAME;
 
 	else if (type == trackingFiles)
-		member_name = "Tracking";
+		member_name = ENV_TRACKING_FILES_MEMBER_NAME;
 
 	for (auto& it = object.ptr[member_name].begin();
 		it != object.ptr[member_name].end(); ++it)
