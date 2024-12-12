@@ -4,6 +4,8 @@
 #include "../utils/utils.h"
 #include "../fmt/fmt.h"
 
+#include <regex>
+
 static void looking_for_similars(const std::string& path)
 {
 	char* similars[MAX_SIMILARS];
@@ -40,7 +42,9 @@ void repo::add_object(const std::string& path)
 	auto noReasonToAdding = util::get_untracked_files().empty() && util::get_modified_files().empty();
 	auto tracking_files   = util::get_files(trackingFiles);
 
-	if (fs::exists(path).as(existNone) || path.substr(0, std::string{ ENV_BASE_DIRECTORY }.length()) == ENV_BASE_DIRECTORY) {
+	std::regex base_directory_pattern{ ENV_BASE_DIRECTORY_PATTERN };
+
+	if (fs::exists(path).as(existNone) || std::regex_match(path, base_directory_pattern)) {
 		fmt{ fc_none, "The file or directory at '%s' was not found\n", path.c_str() };
 		looking_for_similars(path);
 	}
@@ -71,7 +75,7 @@ void repo::add_object(const std::string& path)
 
 		for (int i = 0; i < file_num; i++)
 		{
-			if (std::string{ files[i] }.substr(0, std::string{ ENV_BASE_DIRECTORY }.length()) == ENV_BASE_DIRECTORY)
+			if (std::regex_match(files[i], base_directory_pattern))
 				continue;
 
 			bool already_exists = false;

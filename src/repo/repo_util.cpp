@@ -3,6 +3,8 @@
 #include "../fs/fs.h"
 #include "../utils/utils.h"
 
+#include <regex>
+
 base_files_stat repo::util::setup_base_files()
 {
 	base_files_stat ret = InitializeNew;
@@ -61,9 +63,11 @@ std::vector<std::string> repo::util::get_untracked_files()
 
 	fs::get_directory_files(".", current_files, &current_file_num, fmRecursive);
 
+	std::regex base_directory_pattern{ ENV_BASE_DIRECTORY_PATTERN };
+
 	for (int i = 0; i < current_file_num; i++)
 	{
-		if (std::string{ current_files[i] }.substr(0, std::string{ ENV_BASE_DIRECTORY }.length()) == ENV_BASE_DIRECTORY)
+		if (std::regex_match(current_files[i], base_directory_pattern))
 			continue;
 
 		bool already_exists = false;

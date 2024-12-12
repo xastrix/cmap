@@ -3,6 +3,9 @@
 /* Path to the directory containing the repository files */
 #define ENV_BASE_DIRECTORY             ".cmap"
 
+/* Regex pattern to disallow adding repository files */
+#define ENV_BASE_DIRECTORY_PATTERN     R"(^\.cmap([\\/].*)?$)"
+
 /* Filename of configuration file containing user information */
 #define ENV_CONFIGURATION_FILENAME     ENV_BASE_DIRECTORY "config"
 
