@@ -65,7 +65,7 @@ static bool set_config_values(cfg_t data)
 
 		"# You can change the configuration file manually or\n"
 		"# by writing the following commands:\n"
-		"# cmap set <username> <email> --user-config\n\n"
+		"# cmap config <YourUsername> <YourEmail> --user-config\n\n"
 
 		"username=\"%s\"\n"
 		"email=\"%s\"",

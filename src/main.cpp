@@ -6,32 +6,32 @@
 int main(int argc, const char** argv)
 {
 	cli cli{
-		"cmap a micro version system control\n\n"
+		"CMAP a micro version-system-control system with all the basic functions of a version control system\n\n"
 
-		"cmap init\n"
-		"  Initialize a new repository. This sets up the necessary structure for tracking file changes.\n\n"
+		"cmap h/help\n"
+		"  Instruction for creating the first commit and repository\n\n"
 
-		"cmap set\n"
-		"  Changes some user-defined settings.\n"
-		"    Sub-commands:\n"
-		"      Sub-command    Description         Example\n"
-		"      --user-config  Changing user data  cmap set \"username\" \"mail\" --user-config\n"
-		"\n"
+		"cmap i/init\n"
+		"  Initialize a new repository.\n"
+		"  This sets up the necessary structure for tracking file changes.\n\n"
 
-		"cmap add <filename>\n"
-		"  Add files to the tracked file list. (You can use . to track all files in the current directory)\n"
+		"cmap config \"username\" \"email\" --user-config\n"
+		"  Is intended for changing user settings\n\n"
+
+		"cmap a/add <filename>\n"
+		"  Add files to the tracked file list. (You can use . to track all files/folders in the current directory)\n"
 		"  Also, you can delete a file that was added accidentally, type 'cmap add <filename> --rm'\n\n"
 
-		"cmap commit <msg>\n"
+		"cmap c/commit <msg>\n"
 		"  Create a new commit for your changes. This saves the current state of your tracked files.\n\n"
 
-		"cmap revert <hash>\n"
+		"cmap r/revert <hash>\n"
 		"  Returns the state of the repository to the specified commit, identified by the hash.\n\n"
 
-		"cmap status\n"
+		"cmap s/status\n"
 		"  Display the status of your files, showing which are tracked or untracked.\n\n"
 
-		"cmap log\n"
+		"cmap l/log\n"
 		"  Retrieve information about past commits, including messages and timestamps.\n"
 	};
 
@@ -41,9 +41,17 @@ int main(int argc, const char** argv)
 	if (cfg.username == "?" && cfg.email == "?")
 		repo.status = notAuthorized;
 
-	cli.add("init", [&](int ac, arguments_t args) {
+	cli.add("h/help", [](int, arguments_t) {
+		fmt{ fc_none, "First, you need to set the user settings (cmap config \"username\" \"email\" --user-config)\n" };
+		fmt{ fc_none, "Initialize the repository (cmap init).\n" };
+		fmt{ fc_none, "Add files to the tracked files with the command \"cmap add <filename>\".\n" };
+		fmt{ fc_none, "To check the tracked, deleted, or modified files, use \"cmap status\".\n" };
+		fmt{ fc_none, "To create your first commit, type \"cmap commit <msg>\".\n" };
+	});
+
+	cli.add("i/init", [&](int, arguments_t) {
 		if (repo.status == notAuthorized) {
-			fmt{ fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config\n" };
+			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
 			fmt{ fc_none, "  (You can't initialize repository without user data)\n" };
 			return;
 		}
@@ -57,7 +65,7 @@ int main(int argc, const char** argv)
 		fmt{ fc_none, "  (%s)\n", repo::util::get_repo_directory().c_str() };
 	});
 
-	cli.add("set", [&](int ac, arguments_t args) {
+	cli.add("config", [](int ac, arguments_t args) {
 		if (ac != 3 || args[3] != "--user-config")
 			return;
 
@@ -67,15 +75,16 @@ int main(int argc, const char** argv)
 		cfg.email = args[2];
 
 		if (!cfg::update_cfg(cfg)) {
-			fmt{ fc_none, "Failed to update configuration file\n" };
+			fmt{ fc_none, "Failed to update user-configuration file\n" };
 		}
 	});
 
-	cli.add("add", [&](int ac, arguments_t args) {
+	cli.add("a/add", [&](int ac, arguments_t args) {
 		switch (repo.status) {
 		case Active: {
 			if (ac == 1)
 				repo::add_object(args[1]);
+
 			else if (ac == 2 && args[2] == "--rm")
 				repo::remove_object(args[1]);
 			break;
@@ -85,14 +94,14 @@ int main(int argc, const char** argv)
 			break;
 		}
 		case notAuthorized: {
-			fmt{ fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config\n" };
+			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
 			fmt{ fc_none, "  (You can't add files without user data)\n" };
 			break;
 		}
 		}
 	});
 
-	cli.add("commit", [&](int ac, arguments_t args) {
+	cli.add("c/commit", [&](int ac, arguments_t args) {
 		switch (repo.status) {
 		case Active: {
 			auto temp_files = repo::util::get_files(tempFiles);
@@ -116,14 +125,14 @@ int main(int argc, const char** argv)
 			break;
 		}
 		case notAuthorized: {
-			fmt{ fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config\n" };
+			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
 			fmt{ fc_none, "  (You can't committing without user data)\n" };
 			break;
 		}
 		}
 	});
 
-	cli.add("revert", [&](int ac, arguments_t args) {
+	cli.add("r/revert", [&](int ac, arguments_t args) {
 		switch (repo.status) {
 		case Active: {
 			if (ac != 1 || args[1].empty()) {
@@ -139,14 +148,14 @@ int main(int argc, const char** argv)
 			break;
 		}
 		case notAuthorized: {
-			fmt{ fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config\n" };
+			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
 			fmt{ fc_none, "  (You can't revert without user data)\n" };
 			break;
 		}
 		}
 	});
 
-	cli.add("status", [&](int ac, arguments_t args) {
+	cli.add("s/status", [&](int, arguments_t) {
 		switch (repo.status) {
 		case Active: {
 			auto _temporary_files = repo::util::get_files(tempFiles);
@@ -192,14 +201,14 @@ int main(int argc, const char** argv)
 			break;
 		}
 		case notAuthorized: {
-			fmt{ fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config\n" };
+			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
 			fmt{ fc_none, "  (You can't check status without user data)\n" };
 			break;
 		}
 		}
 	});
 
-	cli.add("log", [&](int ac, arguments_t args) {
+	cli.add("l/log", [&](int, arguments_t) {
 		switch (repo.status) {
 		case Active: {
 			auto map = repo::util::get_map_list();
@@ -224,7 +233,7 @@ int main(int argc, const char** argv)
 			break;
 		}
 		case notAuthorized: {
-			fmt{ fc_none, "Type cmap set <YourUsername> <YourEmail> --user-config\n" };
+			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
 			fmt{ fc_none, "  (You can't check logs without user data)\n" };
 			break;
 		}
