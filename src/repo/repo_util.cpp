@@ -284,9 +284,9 @@ map_t repo::util::get_last_map_data()
 
 	ret = map[0];
 
-	for (const auto& obj : map) {
-		if (obj.timestamp > ret.timestamp)
-			ret = obj;
+	for (int i = 0; i < map.size(); i++) {
+		if (map[i].timestamp > ret.timestamp)
+			ret = map[i];
 	}
 
 	return ret;

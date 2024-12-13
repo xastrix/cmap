@@ -109,7 +109,7 @@ void repo::set_commit_message(cfg_t cfg, const std::string& msg)
 	map.msg       = msg;
 	map.cfg       = cfg;
 
-	if (!util::add_to_map(map) || !util::copy_objects(map.hash)) {
+	if (!util::copy_objects(map.hash) || !util::add_to_map(map)) {
 		fmt{ fc_none, "Failed to add a commit to file with commit data\n" };
 		return;
 	}
