@@ -106,8 +106,9 @@ int main(int argc, const char** argv)
 		case Active: {
 			auto temp_files     = repo::util::get_files(tempFiles);
 			auto modified_files = repo::util::get_modified_files();
+			auto deleted_files  = repo::util::get_deleted_files();
 
-			if (temp_files.empty() && modified_files.empty()) {
+			if (temp_files.empty() && modified_files.empty() && deleted_files.empty()) {
 				fmt{ fc_none, "Add files to the staging area before committing\n" };
 				break;
 			}
