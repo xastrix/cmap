@@ -44,7 +44,6 @@ void repo::add_object(const std::string& path)
 	auto tracking_files   = util::get_files(trackingFiles);
 
 	std::regex base_directory_pattern{ ENV_BASE_DIRECTORY_PATTERN };
-	std::regex s{ ENV_BASE_DIRECTORY_PATTERN };
 
 	if (fs::exists(path).as(existNone) || std::regex_match(path, base_directory_pattern)) {
 		fmt{ fc_none, "The file or directory at '%s' was not found\n", path.c_str() };
