@@ -3,37 +3,38 @@
 #include "utils/utils.h"
 #include "fmt/fmt.h"
 
+const std::string& help_msg = {
+	"CMAP a micro version-system-control system with all the basic functions of a version control system\n\n"
+
+	"cmap i/init\n"
+	"  Initialize a new repository.\n"
+	"  This sets up the necessary structure for tracking file changes.\n\n"
+
+	"cmap config \"username\" \"email\" --user-config\n"
+	"  Is intended for changing user settings\n\n"
+
+	"cmap a/add <filename>\n"
+	"  This command adds files to the tracked file list.\n"
+	"  You can also use . to track all files and folders in the current directory\n"
+	"  If you accidentally added a file, you can remove it by typing 'cmap add <filename> --rm'\n"
+	"  Additionally, if you want to add a file or directory to the ignore list, use 'cmap add <filename> --to-ignore' to include it in " ENV_IGNORE_LIST_FILENAME ".\n\n"
+	
+	"cmap c/commit <msg>\n"
+	"  Create a new commit for your changes. This saves the current state of your tracked files.\n\n"
+
+	"cmap r/revert <hash>\n"
+	"  Returns the state of the repository to the specified commit, identified by the hash.\n\n"
+
+	"cmap s/status\n"
+	"  Display the status of your files, showing which are tracked or untracked.\n\n"
+
+	"cmap l/log\n"
+	"  Retrieve information about past commits, including messages and timestamps.\n"
+};
+
 int main(int argc, const char** argv)
 {
-	cli cli{
-		"CMAP a micro version-system-control system with all the basic functions of a version control system\n\n"
-
-		"cmap h/help\n"
-		"  Instruction for creating the first commit and repository\n\n"
-
-		"cmap i/init\n"
-		"  Initialize a new repository.\n"
-		"  This sets up the necessary structure for tracking file changes.\n\n"
-
-		"cmap config \"username\" \"email\" --user-config\n"
-		"  Is intended for changing user settings\n\n"
-
-		"cmap a/add <filename>\n"
-		"  Add files to the tracked file list. (You can use . to track all files/folders in the current directory)\n"
-		"  Also, you can delete a file that was added accidentally, type 'cmap add <filename> --rm'\n\n"
-
-		"cmap c/commit <msg>\n"
-		"  Create a new commit for your changes. This saves the current state of your tracked files.\n\n"
-
-		"cmap r/revert <hash>\n"
-		"  Returns the state of the repository to the specified commit, identified by the hash.\n\n"
-
-		"cmap s/status\n"
-		"  Display the status of your files, showing which are tracked or untracked.\n\n"
-
-		"cmap l/log\n"
-		"  Retrieve information about past commits, including messages and timestamps.\n"
-	};
+	cli cli{ help_msg };
 
 	cfg_t cfg{ cfg::initialize() };
 	repo_t repo{ repo::initialize() };
@@ -42,11 +43,7 @@ int main(int argc, const char** argv)
 		repo.status = notAuthorized;
 
 	cli.add("h/help", [](int, arguments_t) {
-		fmt{ fc_none, "First, you need to set the user settings (cmap config \"username\" \"email\" --user-config)\n" };
-		fmt{ fc_none, "Initialize the repository (cmap init).\n" };
-		fmt{ fc_none, "Add files to the tracked files with the command \"cmap add <filename>\".\n" };
-		fmt{ fc_none, "To check the tracked, deleted, or modified files, use \"cmap status\".\n" };
-		fmt{ fc_none, "To create your first commit, type \"cmap commit <msg>\".\n" };
+		fmt{ fc_none, help_msg.c_str() };
 	});
 
 	cli.add("i/init", [&](int, arguments_t) {
@@ -72,7 +69,7 @@ int main(int argc, const char** argv)
 		cfg_t cfg;
 
 		cfg.username = args[1];
-		cfg.email = args[2];
+		cfg.email    = args[2];
 
 		if (!cfg::update_cfg(cfg)) {
 			fmt{ fc_none, "Failed to update user-configuration file\n" };
@@ -87,6 +84,9 @@ int main(int argc, const char** argv)
 
 			else if (ac == 2 && args[2] == "--rm")
 				repo::remove_object(args[1]);
+
+			else if (ac == 2 && args[2] == "--to-ignore")
+				repo::add_to_ignore_list(args[1].append("\n"));
 			break;
 		}
 		case Inactive: {
@@ -104,7 +104,7 @@ int main(int argc, const char** argv)
 	cli.add("c/commit", [&](int ac, arguments_t args) {
 		switch (repo.status) {
 		case Active: {
-			auto temp_files = repo::util::get_files(tempFiles);
+			auto temp_files     = repo::util::get_files(tempFiles);
 			auto modified_files = repo::util::get_modified_files();
 
 			if (temp_files.empty() && modified_files.empty()) {

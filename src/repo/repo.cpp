@@ -5,6 +5,7 @@
 #include "../fmt/fmt.h"
 
 #include <regex>
+#include <fstream>
 
 static void looking_for_similars(const std::string& path)
 {
@@ -43,6 +44,7 @@ void repo::add_object(const std::string& path)
 	auto tracking_files   = util::get_files(trackingFiles);
 
 	std::regex base_directory_pattern{ ENV_BASE_DIRECTORY_PATTERN };
+	std::regex s{ ENV_BASE_DIRECTORY_PATTERN };
 
 	if (fs::exists(path).as(existNone) || std::regex_match(path, base_directory_pattern)) {
 		fmt{ fc_none, "The file or directory at '%s' was not found\n", path.c_str() };
@@ -50,6 +52,9 @@ void repo::add_object(const std::string& path)
 	}
 
 	else if (fs::exists(path).as(existObject)) {
+		if (util::is_ignore_file_detected(path))
+			return;
+
 		for (int i = 0; i < tracking_files.size(); i++) {
 			if (tracking_files[i] == path)
 				return;
@@ -63,6 +68,9 @@ void repo::add_object(const std::string& path)
 		char* files[MAX_FILES];
 		int   file_num = 0;
 
+		if (util::is_ignore_file_detected(path))
+			return;
+
 		if (path == ".")
 			fs::get_directory_files(".", files, &file_num, fmRecursive);
 
@@ -75,6 +83,9 @@ void repo::add_object(const std::string& path)
 
 		for (int i = 0; i < file_num; i++)
 		{
+			if (util::is_ignore_file_detected(files[i]))
+				continue;
+
 			if (std::regex_match(files[i], base_directory_pattern))
 				continue;
 
@@ -90,9 +101,15 @@ void repo::add_object(const std::string& path)
 				continue;
 
 			if (!noReasonToAdding)
-				repo::util::add_object_to_files(tempFiles, files[i]);
+				util::add_object_to_files(tempFiles, files[i]);
 		}
 	}
+}
+
+void repo::add_to_ignore_list(const std::string& object)
+{
+	if (!util::is_ignore_file_detected(object))
+		fs::make_file(ENV_IGNORE_LIST_FILENAME, object, std::ios::app);
 }
 
 void repo::remove_object(const std::string& path)
@@ -114,7 +131,7 @@ void repo::set_commit_message(cfg_t cfg, const std::string& msg)
 		return;
 	}
 
-	auto temp_files = repo::util::get_files(tempFiles);
+	auto temp_files = util::get_files(tempFiles);
 
 	for (int i = 0; i < temp_files.size(); i++) {
 		util::add_object_to_files(trackingFiles, temp_files[i]);

@@ -4,6 +4,7 @@
 #include "../utils/utils.h"
 
 #include <regex>
+#include <fstream>
 
 base_files_stat repo::util::setup_base_files()
 {
@@ -55,8 +56,8 @@ std::vector<std::string> repo::util::get_untracked_files()
 {
 	std::vector<std::string> _untracked_files;
 
-	auto tracking_files = repo::util::get_files(trackingFiles);
-	auto temp_files = repo::util::get_files(tempFiles);
+	auto tracking_files = get_files(trackingFiles);
+	auto temp_files     = get_files(tempFiles);
 
 	char* current_files[MAX_FILES];
 	int   current_file_num = 0;
@@ -67,6 +68,9 @@ std::vector<std::string> repo::util::get_untracked_files()
 
 	for (int i = 0; i < current_file_num; i++)
 	{
+		if (is_ignore_file_detected(current_files[i]))
+			continue;
+
 		if (std::regex_match(current_files[i], base_directory_pattern))
 			continue;
 
@@ -97,8 +101,8 @@ std::vector<std::string> repo::util::get_modified_files()
 {
 	std::vector<std::string> _modified_files;
 
-	auto tracking_files = repo::util::get_files(trackingFiles);
-	auto temp_files = repo::util::get_files(tempFiles);
+	auto tracking_files = get_files(trackingFiles);
+	auto temp_files     = get_files(tempFiles);
 
 	for (int i = 0; i < tracking_files.size(); i++)
 	{
@@ -136,7 +140,7 @@ std::vector<std::string> repo::util::get_deleted_files()
 {
 	std::vector<std::string> _deleted_files;
 
-	auto tracking_files = repo::util::get_files(trackingFiles);
+	auto tracking_files = get_files(trackingFiles);
 
 	for (int i = 0; i < tracking_files.size(); i++)
 	{
@@ -247,6 +251,25 @@ void repo::util::remove_object_from_files(const file_type type, const std::strin
 	}
 
 	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.ptr));
+}
+
+bool repo::util::is_ignore_file_detected(const std::string& filename)
+{
+	if (!fs::exists(ENV_IGNORE_LIST_FILENAME).as(existObject))
+		return false;
+
+	std::ifstream file{ ENV_IGNORE_LIST_FILENAME };
+	std::string   line;
+
+	while (std::getline(file, line))
+	{
+		if (line == filename)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 std::vector<map_t> repo::util::get_map_list()

@@ -34,6 +34,7 @@ namespace repo::util
 	bool add_to_map(map_t map);
 	void add_object_to_files(const file_type type, const std::string& obj);
 	void remove_object_from_files(const file_type type, const std::string& obj);
+	bool is_ignore_file_detected(const std::string& filename);
 	std::vector<map_t> get_map_list();
 	map_t get_last_map_data();
 	std::string get_repo_directory();

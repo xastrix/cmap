@@ -18,6 +18,11 @@
 </ul>
 <h2>Usage</h2>
 <pre>cmap h/help</pre>
+<div>First, you need to set the user settings <kbd>cmap config "username" "email" --user-config</kbd></div>
+<div>Initialize the repository <kbd>cmap init</kbd></div>
+<div>Add files to the tracked files with the command <kbd>cmap add "filename"</filename></div>
+<div>To check the tracked, deleted, or modified files, use <kbd>cmap status</kbd></div>
+<div>To create your first commit, type <kbd>cmap commit "message"</kbd></div>
 <h2>Installing</h2>
 <p>Clone the repository</p>
 <pre>git clone --recursive https://github.com/xastrix/cmap.git</pre>
