@@ -151,7 +151,6 @@ std::vector<std::string> repo::util::get_deleted_files()
 			if (!fs::exists(tracking_files[i]).as(existObject))
 			{
 				_deleted_files.push_back(tracking_files[i]);
-				break;
 			}
 		}
 	}
