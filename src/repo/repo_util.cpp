@@ -210,8 +210,6 @@ bool repo::util::add_to_map(const map_t map)
 
 void repo::util::add_object_to_files(const file_type type, const std::string& obj)
 {
-	json_object object = utils::parse_json(ENV_FILES_FILENAME);
-
 	std::string member_name{};
 
 	if (type == tempFiles)
@@ -219,6 +217,8 @@ void repo::util::add_object_to_files(const file_type type, const std::string& ob
 	
 	else if (type == trackingFiles)
 		member_name = ENV_TRACKING_FILES_MEMBER_NAME;
+
+	json_object object = utils::parse_json(ENV_FILES_FILENAME);
 
 	for (int i = 0; i < object.ptr[member_name].size(); i++) {
 		if (object.ptr[member_name][i].asString() == obj) {
@@ -232,8 +232,6 @@ void repo::util::add_object_to_files(const file_type type, const std::string& ob
 
 void repo::util::remove_object_from_files(const file_type type, const std::string& obj)
 {
-	json_object object = utils::parse_json(ENV_FILES_FILENAME);
-
 	std::string member_name{};
 
 	if (type == tempFiles)
@@ -242,12 +240,23 @@ void repo::util::remove_object_from_files(const file_type type, const std::strin
 	else if (type == trackingFiles)
 		member_name = ENV_TRACKING_FILES_MEMBER_NAME;
 
-	for (auto& it = object.ptr[member_name].begin();
-		it != object.ptr[member_name].end(); ++it)
-	{
-		if (it->asString() == obj) {
-			object.ptr[member_name].removeIndex(it.index(), nullptr);
+	json_object object = utils::parse_json(ENV_FILES_FILENAME);
+
+	switch (obj.empty()) {
+	case true: {
+		object.ptr[member_name] = Json::arrayValue;
+		break;
+	}
+	case false: {
+		for (auto& it = object.ptr[member_name].begin();
+			it != object.ptr[member_name].end(); ++it)
+		{
+			if (it->asString() == obj) {
+				object.ptr[member_name].removeIndex(it.index(), nullptr);
+			}
 		}
+		break;
+	}
 	}
 
 	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.ptr));

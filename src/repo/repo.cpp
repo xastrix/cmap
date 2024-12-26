@@ -139,10 +139,7 @@ void repo::set_commit_message(cfg_t cfg, const std::string& msg)
 		util::add_object_to_files(trackingFiles, temp_files[i]);
 	}
 
-	json_object object = utils::parse_json(ENV_FILES_FILENAME);
-
-	object.ptr[ENV_TEMP_FILES_MEMBER_NAME] = Json::arrayValue;
-	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.ptr));
+	util::remove_object_from_files(tempFiles, "");
 }
 
 void repo::set_commit_action(const std::string& hash, commit_action action)

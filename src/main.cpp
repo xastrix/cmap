@@ -3,38 +3,36 @@
 #include "utils/utils.h"
 #include "fmt/fmt.h"
 
-const std::string& help_msg = {
-	"a micro version control system with all the basic functions of a version control system\n\n"
-
-	"cmap i/init\n"
-	"  Initialize a new repository.\n"
-	"  This sets up the necessary structure for tracking file changes.\n\n"
-
-	"cmap config \"username\" \"email\" --user-config\n"
-	"  Is intended for changing user settings\n\n"
-
-	"cmap a/add <filename>\n"
-	"  This command adds files to the tracked file list.\n"
-	"  You can also use . to track all files and folders in the current directory\n"
-	"  If you accidentally added a file, you can remove it by typing 'cmap add <filename> --rm'\n"
-	"  Additionally, if you want to add a file or directory to the ignore list, use 'cmap add <filename> --to-ignore' to include it in " ENV_IGNORE_LIST_FILENAME ".\n\n"
-	
-	"cmap c/commit <msg>\n"
-	"  Create a new commit for your changes. This saves the current state of your tracked files.\n\n"
-
-	"cmap u/undo <hash>\n"
-	"  Returns the state of the repository to the specified commit, identified by the hash.\n\n"
-
-	"cmap s/status\n"
-	"  Display the status of your files, showing which are tracked or untracked.\n\n"
-
-	"cmap l/log\n"
-	"  Retrieve information about past commits, including messages and timestamps.\n"
-};
-
 int main(int argc, const char** argv)
 {
-	cli cli{ help_msg };
+	cli cli{
+		"a micro version control system with all the basic functions of a version control system\n\n"
+		
+		"cmap i/init\n"
+		"  Initialize a new repository.\n"
+		"  This sets up the necessary structure for tracking file changes.\n\n"
+		
+		"cmap config \"username\" \"email\" --user-config\n"
+		"  Is intended for changing user settings\n\n"
+		
+		"cmap a/add <filename>\n"
+		"  This command adds files to the tracked file list.\n"
+		"  You can also use . to track all files and folders in the current directory\n"
+		"  If you accidentally added a file, you can remove it by typing 'cmap add <filename> --rm'\n"
+		"  Additionally, if you want to add a file or directory to the ignore list, use 'cmap add <filename> --to-ignore' to include it in " ENV_IGNORE_LIST_FILENAME ".\n\n"
+		
+		"cmap c/commit <msg>\n"
+		"  Create a new commit for your changes. This saves the current state of your tracked files.\n\n"
+		
+		"cmap u/undo <hash>\n"
+		"  Returns the state of the repository to the specified commit, identified by the hash.\n\n"
+		
+		"cmap s/status\n"
+		"  Display the status of your files, showing which are tracked or untracked.\n\n"
+		
+		"cmap l/log\n"
+		"  Retrieve information about past commits, including messages and timestamps.\n"
+	};
 
 	cfg_t cfg{ cfg::initialize() };
 	repo_t repo{ repo::initialize() };
@@ -115,6 +113,11 @@ int main(int argc, const char** argv)
 
 			if (ac != 1 || args[1].empty()) {
 				fmt{ fc_none, "Commit message is empty\n" };
+				break;
+			}
+
+			if (args[1].length() < 4) {
+				fmt{ fc_none, "The message must be longer than 4 characters\n" };
 				break;
 			}
 
