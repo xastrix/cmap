@@ -213,17 +213,15 @@ void repo::util::add_object_to_files(const file_type type, const std::string& ob
 
 	if (type == tempFiles)
 		member_name = ENV_TEMP_FILES_MEMBER_NAME;
-	
+
 	else if (type == trackingFiles)
 		member_name = ENV_TRACKING_FILES_MEMBER_NAME;
 
 	json_object object = utils::parse_json(ENV_FILES_FILENAME);
 
-	for (int i = 0; i < object.ptr[member_name].size(); i++) {
-		if (object.ptr[member_name][i].asString() == obj) {
+	for (int i = 0; i < object.ptr[member_name].size(); i++)
+		if (object.ptr[member_name][i].asString() == obj)
 			return;
-		}
-	}
 
 	object.ptr[member_name].append(obj);
 	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.ptr));
@@ -318,10 +316,9 @@ map_t repo::util::get_last_map_data()
 
 	ret = map[0];
 
-	for (int i = 0; i < map.size(); i++) {
+	for (int i = 0; i < map.size(); i++)
 		if (map[i].timestamp > ret.timestamp)
 			ret = map[i];
-	}
 
 	return ret;
 }

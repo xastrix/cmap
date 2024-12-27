@@ -27,13 +27,75 @@ struct fs_obj {
 
 namespace fs
 {
+	/*
+	 * Checking for the existence of an object (file/directory) on the specified path
+	 * @param path to the object
+	 * @return fs_obj structure with as() method
+	*/
 	fs_obj exists(const std::string& path);
+
+	/*
+	 * Get file size by specified file name
+	 * @param filename
+	 * @return size of file in long
+	*/
 	long get_file_size(const std::string& filename);
+
+	/*
+	 * Creating a directory by a specified name
+	 * @param dirname
+	 * @param dir attributes
+	 * @return true/false
+	*/
 	bool make_directory(const std::string& dirname, int attributes = 0);
+
+	/*
+	 * Creating a file by a specified name
+	 * @param filename
+	 * @param file content
+	 * @param file flags
+	 * @return true/false
+	*/
 	bool make_file(const std::string& filename, const std::string& content = "", int flags = std::ios::out | std::ios::trunc);
+	
+	/*
+	 * Retrieving file content by specified name
+	 * @param filename
+	 * @return file content
+	*/
 	std::string get_file_content(const std::string& filename);
+
+	/*
+	 * Getting the list of files in the specified directory
+	 * @param dirname
+	 * @param allocated array for the list
+	 * @param number of files found in the directory
+	 * @param file search type (fmFiles - search for files only, fmRecursive - search for files and folders)
+	*/
 	void get_directory_files(const std::string& dirname, char** files, int* num, find_mode mode);
+
+	/*
+	 * Search for similar files in a specified directory by keyword
+	 * @param keyword
+	 * @param dirname
+	 * @param allocated array under the list of similar files
+	 * @param number of similar files found in the directory
+	*/
 	void find_similar_files(const std::string& keyword, const std::string& dirname, char* similars[MAX_SIMILARS], int* num);
+
+	/*
+	 * Search for files in the directory by keyword
+	 * @param dirname
+	 * @param keyword
+	 * @return true/false
+	*/
 	bool find_files_in_directories(const std::string& dirname, const std::string& keyword);
+
+	/*
+	 * Copying an object from one directory to another directory
+	 * @param source
+	 * @param destination
+	 * @param copy type
+	*/
 	void copy(const std::string& source, const std::string& destination, const std::filesystem::copy_options options);
 }

@@ -16,5 +16,10 @@ enum fmt_col {
 };
 
 struct fmt {
+	/*
+	 * Fmt
+	 * @param color of string
+	 * @param fmt
+	*/
 	fmt(fmt_col col, const char* fmt, ...);
 };
