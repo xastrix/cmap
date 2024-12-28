@@ -6,7 +6,7 @@
 int main(int argc, const char** argv)
 {
 	cli cli{
-		"a micro version control system with all the basic functions of a version control system\n\n"
+		"A micro version control system with all the basic functions of a version control system\n\n"
 		
 		"cmap i/init\n"
 		"  Initialize a new repository.\n"
@@ -69,9 +69,10 @@ int main(int argc, const char** argv)
 		cfg.username = args[1];
 		cfg.email    = args[2];
 
-		if (!cfg::update_cfg(cfg)) {
+		auto status = cfg::update_cfg(cfg);
+
+		if (!status)
 			fmt{ fc_none, "Failed to update user-configuration file\n" };
-		}
 	});
 
 	cli.add("a/add", [&](int ac, arguments_t args) {
@@ -153,7 +154,7 @@ int main(int argc, const char** argv)
 		}
 		case notAuthorized: {
 			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
-			fmt{ fc_none, "  (You can't return without user data)\n" };
+			fmt{ fc_none, "  (You can't undo without user data)\n" };
 			break;
 		}
 		}

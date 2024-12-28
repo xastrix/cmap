@@ -160,12 +160,12 @@ std::vector<std::string> repo::util::get_deleted_files()
 
 bool repo::util::copy_objects(const std::string& hash)
 {
-	json_object object = utils::parse_json(ENV_FILES_FILENAME);
-
 	std::string commit_directory{ ENV_STORAGE_DIRECTORY "\\" + hash };
 
 	if (!fs::make_directory(commit_directory))
 		return false;
+
+	json_object object = utils::parse_json(ENV_FILES_FILENAME);
 
 	for (int i = 0; i < object.ptr[ENV_TEMP_FILES_MEMBER_NAME].size(); i++)
 	{
