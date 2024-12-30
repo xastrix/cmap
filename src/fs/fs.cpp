@@ -66,6 +66,17 @@ bool fs::make_file(const std::string& filename, const std::string& content, int 
 	return true;
 }
 
+void fs::delete_objects(const std::vector<std::string>& objects)
+{
+	for (int i = 0; i < objects.size(); i++)
+	{
+		if (!exists(objects[i]).as(existNone))
+		{
+			auto c = std::filesystem::remove_all(objects[i]);
+		}
+	}
+}
+
 std::string fs::get_file_content(const std::string& filename)
 {
 	std::ifstream f{ filename, std::ios::binary };

@@ -3,6 +3,10 @@
 #include "utils/utils.h"
 #include "fmt/fmt.h"
 
+#include <conio.h>
+#include <chrono>
+#include <thread>
+
 int main(int argc, const char** argv)
 {
 	cli cli{
@@ -31,7 +35,10 @@ int main(int argc, const char** argv)
 		"  Display the status of your files, showing which are tracked or untracked.\n\n"
 		
 		"cmap l/log\n"
-		"  Retrieve information about past commits, including messages and timestamps.\n"
+		"  Retrieve information about past commits, including messages and timestamps.\n\n"
+
+		"cmap d/del\n"
+		"  Deleting the current repository.\n"
 	};
 
 	cfg_t cfg{ cfg::initialize() };
@@ -196,9 +203,8 @@ int main(int argc, const char** argv)
 				}
 			}
 
-			if (_temporary_files.empty() && _untracked_files.empty() &&
-				_modified_files.empty() && _deleted_files.empty())
-				fmt{ fc_none, "There is no change. Modify files.\n" };
+			if (_temporary_files.empty() && _untracked_files.empty() && _modified_files.empty() && _deleted_files.empty())
+				fmt{ fc_none, "There is no change. No changed, deleted files were detected.\n" };
 			break;
 		}
 		case Inactive: {
@@ -240,6 +246,38 @@ int main(int argc, const char** argv)
 		case notAuthorized: {
 			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
 			fmt{ fc_none, "  (You can't check logs without user data)\n" };
+			break;
+		}
+		}
+	});
+
+	cli.add("d/del", [&](int, arguments_t) {
+		switch (repo.status) {
+		case Active: {
+			fmt{ fc_none, "You are trying to delete the current repository\n" };
+			fmt{ fc_none, "  (Keep in mind that all commits and all repository data will be destroyed)\n\n" };
+			for (int i = 5; i > 0; --i) {
+				fmt{ fc_none, "-- Press any key if you want to cancel delete (%i)\n", i };
+
+				if (_kbhit()) {
+					_getch();
+					fmt{ fc_none, "Canceled.\n" };
+					return;
+				}
+
+				std::this_thread::sleep_for(std::chrono::seconds(1));
+			}
+
+			repo::delete_repo();
+			break;
+		}
+		case Inactive: {
+			fmt{ fc_none, "You need initialize repository\n" };
+			break;
+		}
+		case notAuthorized: {
+			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
+			fmt{ fc_none, "  (You can't delete repository without user data)\n" };
 			break;
 		}
 		}

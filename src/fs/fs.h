@@ -59,6 +59,12 @@ namespace fs
 	bool make_file(const std::string& filename, const std::string& content = "", int flags = std::ios::out | std::ios::trunc);
 	
 	/*
+	 * Deleting files and directories specified in the provided array
+	 * @param array
+	*/
+	void delete_objects(const std::vector<std::string>& objects);
+
+	/*
 	 * Retrieving file content by specified name
 	 * @param filename
 	 * @return file content

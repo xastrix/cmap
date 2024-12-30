@@ -6,6 +6,7 @@
 
 #include <regex>
 #include <fstream>
+#include <unordered_set>
 
 static void looking_for_similars(const std::string& path)
 {
@@ -151,20 +152,16 @@ void repo::set_commit_action(const std::string& hash, commit_action action)
 		return;
 	}
 
-	bool hash_founded = false;
-	for (int i = 0; i < map.size(); i++) {
-		if (map[i].hash == hash) {
-			hash_founded = true;
-			break;
-		}
-	}
+	std::unordered_set<std::string> hashes;
 
-	if (!hash_founded) {
+	for (int i = 0; i < map.size(); i++)
+		hashes.insert(map[i].hash);
+
+	if (hashes.find(hash) == hashes.end()) {
 		fmt{ fc_none, "Hash '%s' not found --\n", hash.c_str() };
 		for (int i = 0; i < map.size(); i++) {
 			fmt{ fc_none, "%s - %s\n", map[i].hash.c_str(), utils::timestamp::fmt(map[i].timestamp).c_str() };
 		}
-
 		return;
 	}
 
@@ -180,4 +177,11 @@ void repo::set_commit_action(const std::string& hash, commit_action action)
 		break;
 	}
 	}
+}
+
+void repo::delete_repo()
+{
+	fs::delete_objects({
+		ENV_BASE_DIRECTORY, ENV_IGNORE_LIST_FILENAME
+	});
 }

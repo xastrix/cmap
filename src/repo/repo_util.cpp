@@ -125,7 +125,7 @@ std::vector<std::string> repo::util::get_modified_files()
 
 			if (fs::exists(file_path).as(existObject))
 			{
-				if (fs::get_file_size(tracked_path) != fs::get_file_size(file_path))
+				if (fs::get_file_content(tracked_path) != fs::get_file_content(file_path))
 				{
 					_modified_files.push_back(tracking_files[i]);
 				}

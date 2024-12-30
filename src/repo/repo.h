@@ -55,4 +55,9 @@ namespace repo
 	 * @param type action
 	*/
 	void set_commit_action(const std::string& hash, commit_action action);
+
+	/*
+	 * Deleting the current repository
+	*/
+	void delete_repo();
 }
