@@ -55,7 +55,7 @@ namespace utils
 		int64_t get();
 
 		/*
-		 * Format timestamp in style (5 hours ago, 30 min ago, just now)
+		 * Format timestamp
 		 * @return format
 		*/
 		std::string fmt(int64_t timestamp);

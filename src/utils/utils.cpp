@@ -70,8 +70,16 @@ std::string utils::timestamp::fmt(int64_t timestamp)
 	int64_t seconds = diff / 1000;
 	int64_t hours   = seconds / 3600;
 	int64_t minutes = (seconds % 3600) / 60;
+	int64_t days    = hours / 24;
+
+	minutes %= 60;
+	hours   %= 24;
 
 	std::string result;
+
+	if (days > 0) {
+		result += std::to_string(days) + "d ";
+	}
 
 	if (hours > 0) {
 		result += std::to_string(hours) + "h ";
