@@ -162,9 +162,9 @@ bool fs::find_files_in_directories(const std::string& dirname, const std::string
 	if (!exists(dirname).as(existDirectory))
 		return ret;
 
-	for (const auto& entry : std::filesystem::recursive_directory_iterator(dirname))
+	for (const auto& entry : std::filesystem::directory_iterator(dirname))
 	{
-		if (entry.path().filename().string().find(keyword) != std::string::npos)
+		if (entry.path().filename().string() == keyword)
 		{
 			ret = true;
 			break;
