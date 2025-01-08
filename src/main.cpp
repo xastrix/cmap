@@ -9,7 +9,7 @@
 
 int main(int argc, const char** argv)
 {
-	cli cli{
+	cli cli {
 		"A micro version control system with all the basic functions of a version control system\n\n"
 		
 		"cmap i/init\n"
@@ -58,7 +58,14 @@ int main(int argc, const char** argv)
 			return;
 		}
 
-		if (repo::util::setup_base_files() == alreadyExists)
+		auto status = repo::util::setup_base_files();
+
+		if (status == permissionsDenied) {
+			fmt{ fc_red, "%s\\%s: permission denied\n", utils::get_current_directory().c_str(), ENV_BASE_DIRECTORY };
+			return;
+		}
+
+		else if (status == alreadyExists)
 			repo.status = Active;
 
 		fmt{ fc_none, "Repository successful %s\n",
@@ -115,7 +122,7 @@ int main(int argc, const char** argv)
 			auto deleted_files  = repo::util::get_deleted_files();
 
 			if (temp_files.empty() && modified_files.empty() && deleted_files.empty()) {
-				fmt{ fc_none, "Add files to the staging area before committing\n" };
+				fmt{ fc_none, "Add/Modify files to the staging area before committing\n" };
 				break;
 			}
 

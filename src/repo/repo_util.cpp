@@ -10,21 +10,22 @@ base_files_stat repo::util::setup_base_files()
 {
 	base_files_stat ret = InitializeNew;
 
-	if (!fs::make_directory(ENV_BASE_DIRECTORY, 2))
-		if (fs::exists(ENV_BASE_DIRECTORY).as(existDirectory))
-			ret = alreadyExists;
+	if (fs::exists(ENV_BASE_DIRECTORY).as(existDirectory) &&
+		fs::exists(ENV_STORAGE_DIRECTORY).as(existDirectory) &&
+		fs::exists(ENV_COMMITMAP_FILENAME).as(existObject) &&
+		fs::exists(ENV_FILES_FILENAME).as(existObject))
+	{
+		ret = alreadyExists;
+		return ret;
+	}
 
-	if (!fs::make_directory(ENV_STORAGE_DIRECTORY))
-		if (fs::exists(ENV_STORAGE_DIRECTORY).as(existDirectory))
-			ret = alreadyExists;
-
-	if (!fs::make_file(ENV_COMMITMAP_FILENAME))
-		if (fs::exists(ENV_COMMITMAP_FILENAME).as(existObject))
-			ret = alreadyExists;
-
-	if (!fs::make_file(ENV_FILES_FILENAME, "{\"Tracking\":[],\"Temp\":[]}"))
-		if (fs::exists(ENV_FILES_FILENAME).as(existObject))
-			ret = alreadyExists;
+	if (!fs::make_directory(ENV_BASE_DIRECTORY, da_hidden) ||
+		!fs::make_directory(ENV_STORAGE_DIRECTORY) ||
+		!fs::make_file(ENV_COMMITMAP_FILENAME) ||
+		!fs::make_file(ENV_FILES_FILENAME, "{\"Tracking\":[],\"Temp\":[]}")) {
+		ret = permissionsDenied;
+		return ret;
+	}
 
 	return ret;
 }

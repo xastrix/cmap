@@ -12,6 +12,11 @@ typedef enum {
 	fmRecursive,
 } find_mode;
 
+enum dir_attrib {
+	da_def,
+	da_hidden = 2,
+};
+
 enum fs_exist_stat {
 	existNone,
 	existObject,
@@ -47,7 +52,7 @@ namespace fs
 	 * @param dir attributes
 	 * @return true/false
 	*/
-	bool make_directory(const std::string& dirname, int attributes = 0);
+	bool make_directory(const std::string& dirname, dir_attrib attributes = da_def);
 
 	/*
 	 * Creating a file by a specified name

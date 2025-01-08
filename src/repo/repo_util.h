@@ -15,6 +15,7 @@ struct map_t {
 
 enum base_files_stat {
 	alreadyExists,
+	permissionsDenied,
 	InitializeNew,
 };
 

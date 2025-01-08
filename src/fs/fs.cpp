@@ -39,7 +39,7 @@ long fs::get_file_size(const std::string& filename)
 	return size;
 }
 
-bool fs::make_directory(const std::string& dirname, int attributes)
+bool fs::make_directory(const std::string& dirname, dir_attrib attributes)
 {
 	if (!std::filesystem::create_directory(dirname))
 		return false;
