@@ -19,13 +19,17 @@ base_files_stat repo::util::setup_base_files()
 		return ret;
 	}
 
-	if (!fs::make_directory(ENV_BASE_DIRECTORY, da_hidden) ||
-		!fs::make_directory(ENV_STORAGE_DIRECTORY) ||
-		!fs::make_file(ENV_COMMITMAP_FILENAME) ||
-		!fs::make_file(ENV_FILES_FILENAME, "{\"Tracking\":[],\"Temp\":[]}")) {
-		ret = permissionsDenied;
-		return ret;
-	}
+	if (fs::make_directory(ENV_BASE_DIRECTORY, da_hidden) == fsm_perm_denied)
+		ret = permissionDenied;
+
+	if (fs::make_directory(ENV_STORAGE_DIRECTORY) == fsm_perm_denied)
+		ret = permissionDenied;
+
+	if (fs::make_file(ENV_COMMITMAP_FILENAME) == fsm_perm_denied)
+		ret = permissionDenied;
+
+	if (fs::make_file(ENV_FILES_FILENAME, "{\"Tracking\":[],\"Temp\":[]}") == fsm_perm_denied)
+		ret = permissionDenied;
 
 	return ret;
 }

@@ -48,7 +48,7 @@ int main(int argc, const char** argv)
 		repo.status = notAuthorized;
 
 	cli.add("h/help", [&](int, arguments_t) {
-		cli.show_default_msg();
+		return cli.show_default_msg();
 	});
 
 	cli.add("i/init", [&](int, arguments_t) {
@@ -60,7 +60,7 @@ int main(int argc, const char** argv)
 
 		auto status = repo::util::setup_base_files();
 
-		if (status == permissionsDenied) {
+		if (status == permissionDenied) {
 			fmt{ fc_red, "%s\\%s: permission denied\n", utils::get_current_directory().c_str(), ENV_BASE_DIRECTORY };
 			return;
 		}

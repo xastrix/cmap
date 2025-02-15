@@ -39,10 +39,15 @@ long fs::get_file_size(const std::string& filename)
 	return size;
 }
 
-bool fs::make_directory(const std::string& dirname, dir_attrib attributes)
+fs_make_stat fs::make_directory(const std::string& dirname, dir_attrib attributes)
 {
-	if (!std::filesystem::create_directory(dirname))
-		return false;
+	if (!std::filesystem::create_directory(dirname)) {
+		DWORD error = GetLastError();
+		if (error == ERROR_ACCESS_DENIED) {
+			return fsm_perm_denied;
+		}
+		return fsm_perm_denied;
+	}
 
 	if (attributes != 0) {
 		DWORD attrib = GetFileAttributesA(dirname.c_str());
@@ -50,20 +55,24 @@ bool fs::make_directory(const std::string& dirname, dir_attrib attributes)
 		if (!SetFileAttributesA(dirname.c_str(), attrib)) {}
 	}
 
-	return true;
+	return fsm_ok;
 }
 
-bool fs::make_file(const std::string& filename, const std::string& content, int flags)
+fs_make_stat fs::make_file(const std::string& filename, const std::string& content, int flags)
 {
 	std::ofstream f{ filename, flags };
 
-	if (!f.is_open())
-		return false;
+	if (!f.is_open()) {
+		if (errno == EACCES) {
+			return fsm_perm_denied;
+		}
+		return fsm_perm_denied;
+	}
 
 	f << content;
 	f.close();
 
-	return true;
+	return fsm_ok;
 }
 
 void fs::delete_objects(const std::vector<std::string>& objects)

@@ -23,6 +23,11 @@ enum fs_exist_stat {
 	existDirectory,
 };
 
+enum fs_make_stat {
+	fsm_perm_denied,
+	fsm_ok,
+};
+
 struct fs_obj {
 	fs_exist_stat _status;
 	bool as(const fs_exist_stat status) {
@@ -50,18 +55,18 @@ namespace fs
 	 * Creating a directory by a specified name
 	 * @param dirname
 	 * @param dir attributes
-	 * @return true/false
+	 * @return fs_make_stat
 	*/
-	bool make_directory(const std::string& dirname, dir_attrib attributes = da_def);
+	fs_make_stat make_directory(const std::string& dirname, dir_attrib attributes = da_def);
 
 	/*
 	 * Creating a file by a specified name
 	 * @param filename
 	 * @param file content
 	 * @param file flags
-	 * @return true/false
+	 * @return fs_make_stat
 	*/
-	bool make_file(const std::string& filename, const std::string& content = "", int flags = std::ios::out | std::ios::trunc);
+	fs_make_stat make_file(const std::string& filename, const std::string& content = "", int flags = std::ios::out | std::ios::trunc);
 	
 	/*
 	 * Deleting files and directories specified in the provided array
