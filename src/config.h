@@ -3,12 +3,6 @@
 /* Path to the directory containing the repository files */
 #define ENV_BASE_DIRECTORY             ".cmap"
 
-/* Name of the file containing the list of ignored files */
-#define ENV_IGNORE_LIST_FILENAME       ENV_BASE_DIRECTORY "ignore"
-
-/* Regex pattern to disallow adding repository files */
-#define ENV_BASE_DIRECTORY_PATTERN     R"(^\.(cmap|cmapignore)([\\/].*)?$)"
-
 /* Filename of configuration file containing user information */
 #define ENV_CONFIGURATION_FILENAME     ENV_BASE_DIRECTORY "config"
 

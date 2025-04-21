@@ -82,7 +82,7 @@ cfg_t cfg::initialize()
 	cfg.username = "?";
 	cfg.email    = "?";
 
-	if (!fs::exists(utils::get_user_directory() + "\\" ENV_CONFIGURATION_FILENAME).as(existObject))
+	if (!fs::exists(utils::get_user_directory() + "\\" ENV_CONFIGURATION_FILENAME).as(exist_object))
 		set_config_values(cfg);
 
 	return cfg = read_values_from_configuration_file();

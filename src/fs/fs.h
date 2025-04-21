@@ -8,8 +8,8 @@
 #define MAX_SIMILARS 256
 
 typedef enum {
-	fmFiles,
-	fmRecursive,
+	fm_files,
+	fm_recursive,
 } find_mode;
 
 enum dir_attrib {
@@ -18,9 +18,9 @@ enum dir_attrib {
 };
 
 enum fs_exist_stat {
-	existNone,
-	existObject,
-	existDirectory,
+	exist_none,
+	exist_object,
+	exist_directory,
 };
 
 enum fs_make_stat {

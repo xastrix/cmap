@@ -86,13 +86,6 @@ namespace repo::util
 	void remove_object_from_files(const file_type type, const std::string& obj);
 
 	/*
-	 * Check if a file is in the list of ignored files
-	 * @param filename
-	 * @return true/false
-	*/
-	bool is_ignore_file_detected(const std::string& filename);
-
-	/*
 	 * Getting data from the repository map about all commits
 	 * @return array of map_t data
 	*/

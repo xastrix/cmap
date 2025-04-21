@@ -19,7 +19,6 @@ project (proj)
 	   "src/cfg/**",
 	   "src/cli/**",
 	   "src/fs/**",
-	   "src/fmt/**",
 	   "src/repo/**",
 	   "src/utils/**",
 

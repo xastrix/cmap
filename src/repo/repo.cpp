@@ -2,7 +2,6 @@
 
 #include "../fs/fs.h"
 #include "../utils/utils.h"
-#include "../fmt/fmt.h"
 
 #include <regex>
 #include <fstream>
@@ -16,10 +15,7 @@ static void looking_for_similars(const std::string& path)
 	fs::find_similar_files(path, ".", similars, &similar_num);
 
 	for (int i = 0; i < similar_num; i++) {
-		if (strncmp(similars[i], ENV_IGNORE_LIST_FILENAME, strlen(ENV_BASE_DIRECTORY)) == 0)
-			continue;
-
-		fmt{ fc_none, "%s - %s?\n", std::string(5, ' ').c_str(), similars[i] };
+		printf("     - %s?\n", similars[i]);
 	}
 }
 
@@ -29,11 +25,11 @@ repo_t repo::initialize()
 
 	ret.status = Inactive;
 
-	if (fs::exists(ENV_BASE_DIRECTORY).as(existDirectory) &&
-		fs::exists(ENV_STORAGE_DIRECTORY).as(existDirectory))
+	if (fs::exists(ENV_BASE_DIRECTORY).as(exist_directory) &&
+		fs::exists(ENV_STORAGE_DIRECTORY).as(exist_directory))
 	{
-		if (fs::exists(ENV_COMMITMAP_FILENAME).as(existObject) &&
-			fs::exists(ENV_FILES_FILENAME).as(existObject))
+		if (fs::exists(ENV_COMMITMAP_FILENAME).as(exist_object) &&
+			fs::exists(ENV_FILES_FILENAME).as(exist_object))
 		{
 			ret.status = Active;
 		}
@@ -44,54 +40,40 @@ repo_t repo::initialize()
 
 void repo::add_object(const std::string& path)
 {
-	auto noReasonToAdding = util::get_untracked_files().empty() && util::get_modified_files().empty();
-	auto tracking_files   = util::get_files(trackingFiles);
+	auto important_files = util::get_untracked_files().empty() && util::get_modified_files().empty();
+	auto tracking_files  = util::get_files(trackingFiles);
 
-	std::regex base_directory_pattern{ ENV_BASE_DIRECTORY_PATTERN };
-
-	if (fs::exists(path).as(existNone) || std::regex_match(path, base_directory_pattern)) {
-		fmt{ fc_none, "The file or directory at '%s' was not found\n", path.c_str() };
+	if (fs::exists(path).as(exist_none)) {
+		printf("The file or directory at '%s' was not found\n", path.c_str());
 		looking_for_similars(path);
 	}
 
-	else if (fs::exists(path).as(existObject)) {
-		if (util::is_ignore_file_detected(path))
-			return;
-
+	else if (fs::exists(path).as(exist_object)) {
 		for (int i = 0; i < tracking_files.size(); i++) {
 			if (tracking_files[i] == path)
 				return;
 		}
 
-		if (!noReasonToAdding)
+		if (!important_files)
 			util::add_object_to_files(tempFiles, path);
 	}
 
-	else if (fs::exists(path).as(existDirectory)) {
-		if (util::is_ignore_file_detected(path))
-			return;
-
+	else if (fs::exists(path).as(exist_directory)) {
 		char* files[MAX_FILES];
 		int   file_num = 0;
 
 		if (path == ".")
-			fs::get_directory_files(".", files, &file_num, fmRecursive);
+			fs::get_directory_files(".", files, &file_num, fm_recursive);
 
 		else
 		{
 			if (fs::find_files_in_directories(utils::get_current_directory(), path)) {
-				fs::get_directory_files(path, files, &file_num, fmRecursive);
+				fs::get_directory_files(path, files, &file_num, fm_recursive);
 			}
 		}
 
 		for (int i = 0; i < file_num; i++)
 		{
-			if (util::is_ignore_file_detected(files[i]))
-				continue;
-
-			if (std::regex_match(files[i], base_directory_pattern))
-				continue;
-
 			bool already_exists = false;
 			for (int j = 0; j < tracking_files.size(); j++) {
 				if (tracking_files[j] == files[i]) {
@@ -103,16 +85,10 @@ void repo::add_object(const std::string& path)
 			if (already_exists)
 				continue;
 
-			if (!noReasonToAdding)
+			if (!important_files)
 				util::add_object_to_files(tempFiles, files[i]);
 		}
 	}
-}
-
-void repo::add_to_ignore_list(const std::string& object)
-{
-	if (!util::is_ignore_file_detected(object))
-		fs::make_file(ENV_IGNORE_LIST_FILENAME, object, std::ios::app);
 }
 
 void repo::remove_object(const std::string& path)
@@ -130,7 +106,7 @@ void repo::set_commit_message(cfg_t cfg, const std::string& msg)
 	map.cfg       = cfg;
 
 	if (!util::copy_objects(map.hash) || !util::add_to_map(map)) {
-		fmt{ fc_none, "Failed to add a commit to file with commit data\n" };
+		printf("Failed to add a commit to file with commit data\n");
 		return;
 	}
 
@@ -143,24 +119,31 @@ void repo::set_commit_message(cfg_t cfg, const std::string& msg)
 	util::remove_object_from_files(tempFiles, "");
 }
 
-void repo::set_commit_action(const std::string& hash, commit_action action)
+void repo::set_commit_action(std::string hash, commit_action action)
 {
 	auto map = util::get_map_list();
 
 	if (map.empty()) {
-		fmt{ fc_none, "You don't have any commit data\n" };
+		printf("You don't have any commit data\n");
 		return;
 	}
 
 	std::unordered_set<std::string> hashes;
 
-	for (int i = 0; i < map.size(); i++)
+	for (int i = 0; i < map.size(); i++) {
 		hashes.insert(map[i].hash);
+	}
 
 	if (hashes.find(hash) == hashes.end()) {
-		fmt{ fc_none, "Hash '%s' not found --\n", hash.c_str() };
+		if (hash.find_first_not_of(' ') == std::string::npos)
+			hash.clear();
+		printf("Hash '%s' not found --\n", hash.c_str());
 		for (int i = 0; i < map.size(); i++) {
-			fmt{ fc_none, "%s - %s\n", map[i].hash.c_str(), utils::timestamp::fmt(map[i].timestamp).c_str() };
+			printf("%s - %s | %s <%s>\n",
+				map[i].hash.c_str(),
+				utils::timestamp::fmt(map[i].timestamp).c_str(),
+				map[i].cfg.username.c_str(),
+				map[i].cfg.email.c_str());
 		}
 		return;
 	}
@@ -179,9 +162,8 @@ void repo::set_commit_action(const std::string& hash, commit_action action)
 	}
 }
 
-void repo::delete_repo()
+void repo::reset_repo()
 {
-	fs::delete_objects({
-		ENV_BASE_DIRECTORY, ENV_IGNORE_LIST_FILENAME
-	});
+	fs::delete_objects({ ENV_BASE_DIRECTORY });
+	util::setup_base_files();
 }

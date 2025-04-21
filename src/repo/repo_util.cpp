@@ -10,10 +10,10 @@ base_files_stat repo::util::setup_base_files()
 {
 	base_files_stat ret = InitializeNew;
 
-	if (fs::exists(ENV_BASE_DIRECTORY).as(existDirectory) &&
-		fs::exists(ENV_STORAGE_DIRECTORY).as(existDirectory) &&
-		fs::exists(ENV_COMMITMAP_FILENAME).as(existObject) &&
-		fs::exists(ENV_FILES_FILENAME).as(existObject))
+	if (fs::exists(ENV_BASE_DIRECTORY).as(exist_directory) &&
+		fs::exists(ENV_STORAGE_DIRECTORY).as(exist_directory) &&
+		fs::exists(ENV_COMMITMAP_FILENAME).as(exist_object) &&
+		fs::exists(ENV_FILES_FILENAME).as(exist_object))
 	{
 		ret = alreadyExists;
 		return ret;
@@ -36,8 +36,8 @@ base_files_stat repo::util::setup_base_files()
 
 std::vector<std::string> repo::util::get_files(const file_type type)
 {
-	std::vector<std::string> _files;
 	json_object object = utils::parse_json(ENV_FILES_FILENAME);
+	std::vector<std::string> _files;
 
 	switch (type) {
 	case trackingFiles: {
@@ -59,26 +59,18 @@ std::vector<std::string> repo::util::get_files(const file_type type)
 
 std::vector<std::string> repo::util::get_untracked_files()
 {
-	std::vector<std::string> _untracked_files;
-
-	auto tracking_files = get_files(trackingFiles);
-	auto temp_files     = get_files(tempFiles);
-
 	char* current_files[MAX_FILES];
 	int   current_file_num = 0;
 
-	fs::get_directory_files(".", current_files, &current_file_num, fmRecursive);
+	fs::get_directory_files(".", current_files, &current_file_num, fm_recursive);
 
-	std::regex base_directory_pattern{ ENV_BASE_DIRECTORY_PATTERN };
+	auto tracking_files = get_files(trackingFiles);
+	auto temp_files = get_files(tempFiles);
+
+	std::vector<std::string> _untracked_files;
 
 	for (int i = 0; i < current_file_num; i++)
 	{
-		if (is_ignore_file_detected(current_files[i]))
-			continue;
-
-		if (std::regex_match(current_files[i], base_directory_pattern))
-			continue;
-
 		bool already_exists = false;
 
 		for (int k = 0; k < tracking_files.size(); k++) {
@@ -104,10 +96,10 @@ std::vector<std::string> repo::util::get_untracked_files()
 
 std::vector<std::string> repo::util::get_modified_files()
 {
-	std::vector<std::string> _modified_files;
-
 	auto tracking_files = get_files(trackingFiles);
 	auto temp_files     = get_files(tempFiles);
+
+	std::vector<std::string> _modified_files;
 
 	for (int i = 0; i < tracking_files.size(); i++)
 	{
@@ -124,11 +116,11 @@ std::vector<std::string> repo::util::get_modified_files()
 
 		std::string tracked_path{ tracking_files[i] };
 
-		if (fs::exists(tracked_path).as(existObject))
+		if (fs::exists(tracked_path).as(exist_object))
 		{
 			std::string file_path{ ENV_STORAGE_DIRECTORY "\\" + get_last_map_data().hash + "\\" + tracked_path };
 
-			if (fs::exists(file_path).as(existObject))
+			if (fs::exists(file_path).as(exist_object))
 			{
 				if (fs::get_file_content(tracked_path) != fs::get_file_content(file_path))
 				{
@@ -143,17 +135,17 @@ std::vector<std::string> repo::util::get_modified_files()
 
 std::vector<std::string> repo::util::get_deleted_files()
 {
-	std::vector<std::string> _deleted_files;
-
 	auto tracking_files = get_files(trackingFiles);
+
+	std::vector<std::string> _deleted_files;
 
 	for (int i = 0; i < tracking_files.size(); i++)
 	{
 		std::string file_path{ ENV_STORAGE_DIRECTORY "\\" + get_last_map_data().hash + "\\" + tracking_files[i] };
 
-		if (fs::exists(file_path).as(existObject))
+		if (fs::exists(file_path).as(exist_object))
 		{
-			if (!fs::exists(tracking_files[i]).as(existObject))
+			if (!fs::exists(tracking_files[i]).as(exist_object))
 			{
 				_deleted_files.push_back(tracking_files[i]);
 			}
@@ -174,7 +166,7 @@ bool repo::util::copy_objects(const std::string& hash)
 
 	for (int i = 0; i < object.ptr[ENV_TEMP_FILES_MEMBER_NAME].size(); i++)
 	{
-		if (!fs::exists(object.ptr[ENV_TEMP_FILES_MEMBER_NAME][i].asString()).as(existNone))
+		if (!fs::exists(object.ptr[ENV_TEMP_FILES_MEMBER_NAME][i].asString()).as(exist_none))
 		{
 			std::string source{ object.ptr[ENV_TEMP_FILES_MEMBER_NAME][i].asString() };
 			std::string destination{ commit_directory + "\\" + object.ptr[ENV_TEMP_FILES_MEMBER_NAME][i].asString() };
@@ -185,7 +177,7 @@ bool repo::util::copy_objects(const std::string& hash)
 
 	for (int j = 0; j < object.ptr[ENV_TRACKING_FILES_MEMBER_NAME].size(); j++)
 	{
-		if (!fs::exists(object.ptr[ENV_TRACKING_FILES_MEMBER_NAME][j].asString()).as(existNone))
+		if (!fs::exists(object.ptr[ENV_TRACKING_FILES_MEMBER_NAME][j].asString()).as(exist_none))
 		{
 			std::string source{ object.ptr[ENV_TRACKING_FILES_MEMBER_NAME][j].asString() };
 			std::string destination{ commit_directory + "\\" + object.ptr[ENV_TRACKING_FILES_MEMBER_NAME][j].asString() };
@@ -225,8 +217,11 @@ void repo::util::add_object_to_files(const file_type type, const std::string& ob
 	json_object object = utils::parse_json(ENV_FILES_FILENAME);
 
 	for (int i = 0; i < object.ptr[member_name].size(); i++)
-		if (object.ptr[member_name][i].asString() == obj)
+	{
+		if (object.ptr[member_name][i].asString() == obj) {
 			return;
+		}
+	}
 
 	object.ptr[member_name].append(obj);
 	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.ptr));
@@ -264,33 +259,10 @@ void repo::util::remove_object_from_files(const file_type type, const std::strin
 	fs::make_file(ENV_FILES_FILENAME, Json::writeString(Json::StreamWriterBuilder{}, object.ptr));
 }
 
-bool repo::util::is_ignore_file_detected(const std::string& filename)
-{
-	if (!fs::exists(ENV_IGNORE_LIST_FILENAME).as(existObject))
-		return false;
-
-	std::ifstream file{ ENV_IGNORE_LIST_FILENAME };
-	std::string   line;
-
-	while (std::getline(file, line))
-	{
-		if (!fs::exists(filename).as(existNone))
-		{
-			if (line == filename)
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
 std::vector<map_t> repo::util::get_map_list()
 {
-	std::vector<map_t> _map_list;
-
 	json_object object = utils::parse_json(ENV_COMMITMAP_FILENAME);
+	std::vector<map_t> _map_list;
 
 	for (int i = 0; i < object.ptr.getMemberNames().size(); i++) {
 		map_t map;
@@ -312,9 +284,8 @@ std::vector<map_t> repo::util::get_map_list()
 
 map_t repo::util::get_last_map_data()
 {
-	map_t ret;
-
 	auto map = get_map_list();
+	map_t ret;
 
 	if (map.empty())
 		return ret;
@@ -322,13 +293,16 @@ map_t repo::util::get_last_map_data()
 	ret = map[0];
 
 	for (int i = 0; i < map.size(); i++)
-		if (map[i].timestamp > ret.timestamp)
+	{
+		if (map[i].timestamp > ret.timestamp) {
 			ret = map[i];
+		}
+	}
 
 	return ret;
 }
 
 std::string repo::util::get_repo_directory()
 {
-	return utils::get_current_directory() + "\\" ENV_BASE_DIRECTORY;
+	return utils::get_current_directory();
 }

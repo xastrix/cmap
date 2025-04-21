@@ -21,17 +21,19 @@
 <p>First, you need to set the user settings</p>
 <pre>cmap config "username" "email" --user-config</pre>
 <p>Initialize the repository</p>
-<pre>cmap init</pre>
+<pre>cmap i/init</pre>
 <p>Add files to the tracked files with the command</p>
 <pre>cmap add "filename"</pre>
 <p>To remove an accidentally included file, use the command</p>
 <pre>cmap add "filename" --rm</pre>
-<p>To include a file in the list of ignored files, type</p>
-<pre>cmap add "filename" --to-ignore</pre>
 <p>To check the tracked, deleted, or modified files, use the command</p>
 <pre>cmap status</pre>
+<p>This command rolls back the specified commit identified by the provided hash</p>
+<pre>cmap u/undo "hash"</pre>
 <p>To create your first commit, type</p>
 <pre>cmap commit "message"</pre>
+<p>Show commit list (including hash, commit message, datetime, and committer information)</p>
+<pre>cmap log</pre>
 <h2>Installing</h2>
 <p>Clone the repository</p>
 <pre>git clone --recursive https://github.com/xastrix/cmap.git</pre>

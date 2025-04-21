@@ -31,12 +31,6 @@ namespace repo
 	void add_object(const std::string& path);
 
 	/*
-	 * Adding files to the list of ignored files (.cmapignore)
-	 * @param object name
-	*/
-	void add_to_ignore_list(const std::string& object);
-
-	/*
 	 * Deleting a file from the list of tracked files
 	 * @param path to the object
 	*/
@@ -54,10 +48,10 @@ namespace repo
 	 * @param hash
 	 * @param type action
 	*/
-	void set_commit_action(const std::string& hash, commit_action action);
+	void set_commit_action(std::string hash, const commit_action action);
 
 	/*
-	 * Deleting the current repository
+	 * Reset repository
 	*/
-	void delete_repo();
+	void reset_repo();
 }

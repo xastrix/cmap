@@ -1,7 +1,6 @@
 #include "cli/cli.h"
 #include "repo/repo.h"
 #include "utils/utils.h"
-#include "fmt/fmt.h"
 
 #include <conio.h>
 #include <chrono>
@@ -19,26 +18,22 @@ int main(int argc, const char** argv)
 		"cmap config \"username\" \"email\" --user-config\n"
 		"  Is intended for changing user settings\n\n"
 		
-		"cmap a/add <filename>\n"
+		"cmap add <filename>\n"
 		"  This command adds files to the tracked file list.\n"
 		"  You can also use . to track all files and folders in the current directory\n"
-		"  If you accidentally added a file, you can remove it by typing 'cmap add <filename> --rm'\n"
-		"  Additionally, if you want to add a file or directory to the ignore list, use 'cmap add <filename> --to-ignore' to include it in " ENV_IGNORE_LIST_FILENAME ".\n\n"
+		"  If you accidentally added a file, you can remove it by typing 'cmap add <filename> --rm'\n\n"
 		
-		"cmap c/commit <msg>\n"
+		"cmap commit <msg>\n"
 		"  Create a new commit for your changes. This saves the current state of your tracked files.\n\n"
 		
 		"cmap u/undo <hash>\n"
 		"  Returns the state of the repository to the specified commit, identified by the hash.\n\n"
 		
-		"cmap s/status\n"
+		"cmap status\n"
 		"  Display the status of your files, showing which are tracked or untracked.\n\n"
 		
-		"cmap l/log\n"
-		"  Retrieve information about past commits, including messages and timestamps.\n\n"
-
-		"cmap d/del\n"
-		"  Deleting the current repository.\n"
+		"cmap log\n"
+		"  Retrieve information about past commits, including messages and timestamps.\n"
 	};
 
 	cfg_t cfg{ cfg::initialize() };
@@ -53,25 +48,38 @@ int main(int argc, const char** argv)
 
 	cli.add("i/init", [&](int, arguments_t) {
 		if (repo.status == notAuthorized) {
-			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
-			fmt{ fc_none, "  (You can't initialize repository without user data)\n" };
+			printf("Type cmap config <YourUsername> <YourEmail> --user-config\n");
+			printf("  (You can't initialize repository without user data)\n");
 			return;
 		}
 
 		auto status = repo::util::setup_base_files();
 
 		if (status == permissionDenied) {
-			fmt{ fc_red, "%s\\%s: permission denied\n", utils::get_current_directory().c_str(), ENV_BASE_DIRECTORY };
+			printf("%s\\%s: permission denied\n", utils::get_current_directory().c_str(), ENV_BASE_DIRECTORY);
 			return;
 		}
 
 		else if (status == alreadyExists)
 			repo.status = Active;
 
-		fmt{ fc_none, "Repository successful %s\n",
-			repo.status == Inactive ? "initialized" : "reinitialized" };
+		if (repo.status == Active) {
+			printf("Enter Y/y if you want to reinitialize a repository (All data will be restored): ");
 
-		fmt{ fc_none, "  (%s)\n", repo::util::get_repo_directory().c_str() };
+			char input[100];
+			if (fgets(input, sizeof(input), stdin) != nullptr) {
+				input[strcspn(input, "\n")] = 0;
+
+				if (strcmp(input, "Y") == 0 || strcmp(input, "y") == 0) {
+					repo::reset_repo();
+					printf("Repository successful reinitialized\n");
+				}
+			}
+		}
+		else {
+			printf("Repository successful initialized\n");
+			printf("  (%s)\n", repo::util::get_repo_directory().c_str());
+		}
 	});
 
 	cli.add("config", [](int ac, arguments_t args) {
@@ -86,10 +94,10 @@ int main(int argc, const char** argv)
 		auto status = cfg::update_cfg(cfg);
 
 		if (!status)
-			fmt{ fc_none, "Failed to update user-configuration file\n" };
+			printf("Failed to update user-configuration file\n");
 	});
 
-	cli.add("a/add", [&](int ac, arguments_t args) {
+	cli.add("add", [&](int ac, arguments_t args) {
 		switch (repo.status) {
 		case Active: {
 			if (ac == 1)
@@ -97,24 +105,21 @@ int main(int argc, const char** argv)
 
 			else if (ac == 2 && args[2] == "--rm")
 				repo::remove_object(args[1]);
-
-			else if (ac == 2 && args[2] == "--to-ignore")
-				repo::add_to_ignore_list(args[1].append("\n"));
 			break;
 		}
 		case Inactive: {
-			fmt{ fc_none, "You need initialize repository\n" };
+			printf("You need initialize repository\n");
 			break;
 		}
 		case notAuthorized: {
-			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
-			fmt{ fc_none, "  (You can't add files without user data)\n" };
+			printf("Type cmap config <YourUsername> <YourEmail> --user-config\n");
+			printf("  (You can't add files without user data)\n");
 			break;
 		}
 		}
 	});
 
-	cli.add("c/commit", [&](int ac, arguments_t args) {
+	cli.add("commit", [&](int ac, arguments_t args) {
 		switch (repo.status) {
 		case Active: {
 			auto temp_files     = repo::util::get_files(tempFiles);
@@ -122,17 +127,17 @@ int main(int argc, const char** argv)
 			auto deleted_files  = repo::util::get_deleted_files();
 
 			if (temp_files.empty() && modified_files.empty() && deleted_files.empty()) {
-				fmt{ fc_none, "Add/Modify files to the staging area before committing\n" };
+				printf("Add/Modify files to the staging area before committing\n");
 				break;
 			}
 
 			if (ac != 1 || args[1].empty()) {
-				fmt{ fc_none, "Commit message is empty\n" };
+				printf("Commit message is empty\n");
 				break;
 			}
 
 			if (args[1].length() < 4) {
-				fmt{ fc_none, "The message must be longer than 4 characters\n" };
+				printf("The commit message must be longer than 4 characters\n");
 				break;
 			}
 
@@ -140,12 +145,12 @@ int main(int argc, const char** argv)
 			break;
 		}
 		case Inactive: {
-			fmt{ fc_none, "You need initialize repository\n" };
+			printf("You need initialize repository\n");
 			break;
 		}
 		case notAuthorized: {
-			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
-			fmt{ fc_none, "  (You can't committing without user data)\n" };
+			printf("Type cmap config <YourUsername> <YourEmail> --user-config\n");
+			printf("  (You can't committing without user data)\n");
 			break;
 		}
 		}
@@ -155,7 +160,7 @@ int main(int argc, const char** argv)
 		switch (repo.status) {
 		case Active: {
 			if (ac != 1 || args[1].empty()) {
-				fmt{ fc_none, "Hash is empty\n" };
+				printf("Hash is empty\n");
 				break;
 			}
 
@@ -163,18 +168,18 @@ int main(int argc, const char** argv)
 			break;
 		}
 		case Inactive: {
-			fmt{ fc_none, "You need initialize repository\n" };
+			printf("You need initialize repository\n");
 			break;
 		}
 		case notAuthorized: {
-			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
-			fmt{ fc_none, "  (You can't undo without user data)\n" };
+			printf("Type cmap config <YourUsername> <YourEmail> --user-config\n");
+			printf("  (You can't undo without user data)\n");
 			break;
 		}
 		}
 	});
 
-	cli.add("s/status", [&](int, arguments_t) {
+	cli.add("status", [&](int, arguments_t) {
 		switch (repo.status) {
 		case Active: {
 			auto _temporary_files = repo::util::get_files(tempFiles);
@@ -183,50 +188,50 @@ int main(int argc, const char** argv)
 			auto _deleted_files   = repo::util::get_deleted_files();
 
 			if (!_temporary_files.empty()) {
-				fmt{ fc_none, "You committing next files --\n" };
+				printf("You committing next files --\n");
 				for (const auto& f : _temporary_files) {
-					fmt{ fc_green, "%s%s\n", std::string(5, ' ').c_str(), f.c_str() };
+					printf("     %s\n", f.c_str());
 				}
 			}
 
 			if (!_untracked_files.empty()) {
-				fmt{ fc_none, "Untracked files --\n" };
+				printf("Untracked files --\n");
 				for (const auto& f : _untracked_files) {
-					fmt{ fc_none, "%s%s\n", std::string(5, ' ').c_str(), f.c_str() };
+					printf("     %s\n", f.c_str());
 				}
 			}
 
 			if (!_modified_files.empty()) {
-				fmt{ fc_none, "Modified files --\n" };
+				printf("Modified files --\n");
 				for (const auto& f : _modified_files) {
-					fmt{ fc_yellow, "%s%s\n", std::string(5, ' ').c_str(), f.c_str() };
+					printf("     %s\n", f.c_str());
 				}
 			}
 
 			if (!_deleted_files.empty()) {
-				fmt{ fc_none, "Deleted files --\n" };
+				printf("Deleted files --\n");
 				for (const auto& f : _deleted_files) {
-					fmt{ fc_red, "%s%s\n", std::string(5, ' ').c_str(), f.c_str() };
+					printf("     %s\n", f.c_str());
 				}
 			}
 
 			if (_temporary_files.empty() && _untracked_files.empty() && _modified_files.empty() && _deleted_files.empty())
-				fmt{ fc_none, "There is no change. No changed, deleted files were detected.\n" };
+				printf("There is no change. No changed, deleted files were detected.\n");
 			break;
 		}
 		case Inactive: {
-			fmt{ fc_none, "You need initialize repository\n" };
+			printf("You need initialize repository\n");
 			break;
 		}
 		case notAuthorized: {
-			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
-			fmt{ fc_none, "  (You can't check status without user data)\n" };
+			printf("Type cmap config <YourUsername> <YourEmail> --user-config\n");
+			printf("  (You can't check status without user data)\n");
 			break;
 		}
 		}
 	});
 
-	cli.add("l/log", [&](int, arguments_t) {
+	cli.add("log", [&](int, arguments_t) {
 		switch (repo.status) {
 		case Active: {
 			auto map = repo::util::get_map_list();
@@ -236,55 +241,23 @@ int main(int argc, const char** argv)
 			});
 
 			for (int i = 0; i < map.size(); i++) {
-				fmt{ fc_none, "%s\n\n", map[i].hash.c_str() };
-				fmt{ fc_none, "%s%s\n\n", std::string(5, ' ').c_str(), map[i].msg.c_str() };
-				fmt{ fc_none, "%s%s | %s <%s>\n\n",
+				printf("%s\n\n", map[i].hash.c_str());
+				printf("%s%s\n\n", std::string(5, ' ').c_str(), map[i].msg.c_str());
+				printf("%s%s | %s <%s>\n\n",
 					std::string(map[i].msg.length() + 5, ' ').c_str(),
 					utils::timestamp::fmt(map[i].timestamp).c_str(),
 					map[i].cfg.username.c_str(),
-					map[i].cfg.email.c_str() };
+					map[i].cfg.email.c_str());
 			}
 			break;
 		}
 		case Inactive: {
-			fmt{ fc_none, "You need initialize repository\n" };
+			printf("You need initialize repository\n");
 			break;
 		}
 		case notAuthorized: {
-			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
-			fmt{ fc_none, "  (You can't check logs without user data)\n" };
-			break;
-		}
-		}
-	});
-
-	cli.add("d/del", [&](int, arguments_t) {
-		switch (repo.status) {
-		case Active: {
-			fmt{ fc_none, "You are trying to delete the current repository\n" };
-			fmt{ fc_none, "  (Keep in mind that all commits and all repository data will be destroyed)\n\n" };
-			for (int i = 5; i > 0; --i) {
-				fmt{ fc_none, "-- Press any key if you want to cancel delete (%i)\n", i };
-
-				if (_kbhit()) {
-					_getch();
-					fmt{ fc_none, "Canceled.\n" };
-					return;
-				}
-
-				std::this_thread::sleep_for(std::chrono::seconds(1));
-			}
-
-			repo::delete_repo();
-			break;
-		}
-		case Inactive: {
-			fmt{ fc_none, "You need initialize repository\n" };
-			break;
-		}
-		case notAuthorized: {
-			fmt{ fc_none, "Type cmap config <YourUsername> <YourEmail> --user-config\n" };
-			fmt{ fc_none, "  (You can't delete repository without user data)\n" };
+			printf("Type cmap config <YourUsername> <YourEmail> --user-config\n");
+			printf("  (You can't check logs without user data)\n");
 			break;
 		}
 		}

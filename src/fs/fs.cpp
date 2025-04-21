@@ -1,8 +1,8 @@
 #include "fs.h"
 
 #include "../config.h"
-#include "../fmt/fmt.h"
 
+#include <windows.h>
 #include <fstream>
 
 fs_obj fs::exists(const std::string& path)
@@ -10,15 +10,15 @@ fs_obj fs::exists(const std::string& path)
 	struct stat   s;
 	struct fs_obj o;
 
-	o._status = existNone;
+	o._status = exist_none;
 
 	if (stat(path.c_str(), &s) == 0)
 	{
 		if (s.st_mode & S_IFDIR) {
-			o._status = existDirectory;
+			o._status = exist_directory;
 		}
 		else if (s.st_mode & S_IFREG) {
-			o._status = existObject;
+			o._status = exist_object;
 		}
 	}
 
@@ -79,7 +79,7 @@ void fs::delete_objects(const std::vector<std::string>& objects)
 {
 	for (int i = 0; i < objects.size(); i++)
 	{
-		if (!exists(objects[i]).as(existNone))
+		if (!exists(objects[i]).as(exist_none))
 		{
 			auto c = std::filesystem::remove_all(objects[i]);
 		}
@@ -113,8 +113,11 @@ void fs::get_directory_files(const std::string& dirname, char** files, int* num,
 	do {
 		if (strcmp(data.cFileName, ".") == 0 || strcmp(data.cFileName, "..") == 0)
 			continue;
+
+		if (strcmp(data.cFileName, ENV_BASE_DIRECTORY) == 0)
+			continue;
 		
-		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && mode == fmFiles)
+		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && mode == fm_files)
 			continue;
 
 		char path[MAX_PATH];
@@ -125,8 +128,8 @@ void fs::get_directory_files(const std::string& dirname, char** files, int* num,
 			sprintf(path, "%s\\%s", dirname.c_str(), data.cFileName);
 
 		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-			if (mode == fmRecursive) {
-				get_directory_files(path, files, num, fmRecursive);
+			if (mode == fm_recursive) {
+				get_directory_files(path, files, num, fm_recursive);
 			}
 			continue;
 		}
@@ -149,7 +152,7 @@ void fs::find_similar_files(const std::string& keyword, const std::string& dirna
 	char* files[MAX_FILES];
 	int   file_num = 0;
 
-	get_directory_files(dirname, files, &file_num, fmFiles);
+	get_directory_files(dirname, files, &file_num, fm_files);
 
 	for (int i = 0; i < file_num; i++) {
 		if (strncmp(files[i], keyword.c_str(), 1) == 0) {
@@ -168,7 +171,7 @@ bool fs::find_files_in_directories(const std::string& dirname, const std::string
 {
 	bool ret = false;
 
-	if (!exists(dirname).as(existDirectory))
+	if (!exists(dirname).as(exist_directory))
 		return ret;
 
 	for (const auto& entry : std::filesystem::directory_iterator(dirname))
@@ -190,9 +193,9 @@ void fs::copy(const std::string& source, const std::string& destination, const s
 		std::filesystem::copy(source, destination, options);
 	}
 	catch (const std::filesystem::filesystem_error& e) {
-		fmt{ fc_red, "%s\n", e.what() };
+		printf("fs::copy %s\n", e.what());
 	}
 	catch (const std::exception& e) {
-		fmt{ fc_red, "%s\n", e.what() };
+		printf("fs::copy %s\n", e.what());
 	}
 }
